@@ -228,15 +228,71 @@ public class ProductListViewController {
         }
     }
 
-     @FXML
+    @FXML
     private void handleEditProduct() {
         ProductDto selectedProduct = productTableView.getSelectionModel().getSelectedItem();
-        if (selectedProduct != null) {
-            statusLabel.setText("Edit Product clicked for: " + selectedProduct.getName() + " - Placeholder");
-            // Implementation will be similar to handleAddProduct but for editing
-            showInfoAlert("Edit Product", "This feature will be implemented in the next commit."); // This call should now be fine
-        } else {
-            showInfoAlert("No Selection", "Please select a product to edit."); // This call should now be fine
+        if (selectedProduct == null) {
+            showInfoAlert("No Product Selected", "Please select a product in the table to edit.");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/fxml/ProductEditDialog.fxml")));
+            loader.setControllerFactory(springContext::getBean); // Use Spring context
+
+            DialogPane dialogPane = loader.load();
+            ProductEditDialogController controller = loader.getController();
+            controller.setDialogMode(true);    // Set to Edit mode
+            controller.setProduct(selectedProduct); // Pass the selected product
+            controller.setDialogPane(dialogPane);
+
+
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setDialogPane(dialogPane);
+            dialog.setTitle("Edit Product");
+            dialog.initOwner(editProductButton.getScene().getWindow()); // Set owner
+
+            Button saveButtonNode = (Button) dialogPane.lookupButton(dialogPane.getButtonTypes().stream()
+                            .filter(bt -> bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
+                            .findFirst()
+                            .orElseThrow(() -> new IllegalStateException("Save ButtonType not found in dialog")));
+
+            saveButtonNode.setOnAction(event -> {
+                if (controller.handleSave()) { // Perform validation
+                    dialog.setResult(dialogPane.getButtonTypes().stream()
+                            .filter(bt -> bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
+                            .findFirst().get());
+                    dialog.close();
+                } else {
+                    event.consume(); // Prevent dialog from closing if validation fails
+                }
+            });
+
+            Optional<ButtonType> result = dialog.showAndWait();
+
+            if (result.isPresent() && result.get().getButtonData() == ButtonBar.ButtonData.OK_DONE && controller.isSaveClicked()) {
+                ProductDto updatedProductDetails = controller.getProduct();
+                showProgress(true, "Updating product '" + updatedProductDetails.getName() + "'...");
+                productClientService.updateProduct(selectedProduct.getId(), updatedProductDetails)
+                    .thenAcceptAsync(savedProduct -> Platform.runLater(() -> {
+                        showProgress(false, "Product '" + savedProduct.getName() + "' updated successfully.");
+                        loadProducts(); // Refresh the list
+                    }))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            System.err.println("Error updating product: " + ex.getMessage());
+                            ex.printStackTrace();
+                            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                            showProgress(false, "Error updating product: " + cause.getMessage());
+                            showErrorAlert("Failed to Update Product", cause.getMessage());
+                        });
+                        return null;
+                    });
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showErrorAlert("Dialog Error", "Failed to load the edit product dialog: " + e.getMessage());
         }
     }
 

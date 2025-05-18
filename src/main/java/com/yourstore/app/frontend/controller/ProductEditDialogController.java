@@ -57,11 +57,11 @@ public class ProductEditDialogController {
     }
 
     public void setProduct(ProductDto product) {
-        this.currentProduct = product;
-        saveClicked = false; // Reset saveClicked flag
+        this.currentProduct = product; // Key: store the original product DTO
+        saveClicked = false;
         validationErrorLabel.setText("");
 
-        if (product != null) {
+        if (product != null) { // Editing existing product
             nameField.setText(product.getName());
             categoryComboBox.setValue(product.getCategory());
             descriptionArea.setText(product.getDescription());
@@ -69,8 +69,8 @@ public class ProductEditDialogController {
             purchasePriceSpinner.getValueFactory().setValue(product.getPurchasePrice() != null ? product.getPurchasePrice().doubleValue() : 0.0);
             sellingPriceSpinner.getValueFactory().setValue(product.getSellingPrice() != null ? product.getSellingPrice().doubleValue() : 0.0);
             quantitySpinner.getValueFactory().setValue(product.getQuantityInStock());
-        } else {
-            // Defaults for a new product
+            // ID is preserved in this.currentProduct
+        } else { // Adding new product
             nameField.clear();
             categoryComboBox.getSelectionModel().clearSelection();
             descriptionArea.clear();
@@ -82,18 +82,22 @@ public class ProductEditDialogController {
     }
 
     public ProductDto getProduct() {
-        if (currentProduct == null) {
-            currentProduct = new ProductDto();
+        ProductDto productToSave;
+        if (this.currentProduct != null && this.currentProduct.getId() != null) { // If editing an existing product
+            productToSave = this.currentProduct; // Start with the existing DTO (to preserve ID and audit fields if not changed)
+        } else { // If adding a new product
+            productToSave = new ProductDto();
         }
-        // ID is not set here, backend will generate for new, or preserve for existing.
-        currentProduct.setName(nameField.getText());
-        currentProduct.setCategory(categoryComboBox.getValue());
-        currentProduct.setDescription(descriptionArea.getText());
-        currentProduct.setSupplier(supplierField.getText());
-        currentProduct.setPurchasePrice(BigDecimal.valueOf(purchasePriceSpinner.getValue()));
-        currentProduct.setSellingPrice(BigDecimal.valueOf(sellingPriceSpinner.getValue()));
-        currentProduct.setQuantityInStock(quantitySpinner.getValue());
-        return currentProduct;
+
+        productToSave.setName(nameField.getText());
+        productToSave.setCategory(categoryComboBox.getValue());
+        productToSave.setDescription(descriptionArea.getText());
+        productToSave.setSupplier(supplierField.getText());
+        productToSave.setPurchasePrice(BigDecimal.valueOf(purchasePriceSpinner.getValue()));
+        productToSave.setSellingPrice(BigDecimal.valueOf(sellingPriceSpinner.getValue()));
+        productToSave.setQuantityInStock(quantitySpinner.getValue());
+        // createdAt and updatedAt from currentProduct (if editing) are preserved if not explicitly cleared or modified by backend
+        return productToSave;
     }
 
     public boolean isSaveClicked() {

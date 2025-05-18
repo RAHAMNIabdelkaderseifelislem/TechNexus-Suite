@@ -90,7 +90,7 @@ public class ProductClientService {
         try {
             String requestBody = objectMapper.writeValueAsString(productDto);
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(getBaseUrl() + "/" + id))
+                    .uri(URI.create(getBaseUrl() + "/" + id)) // Ensure ID is part of the URL
                     .header("Content-Type", "application/json")
                     .PUT(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
@@ -104,10 +104,12 @@ public class ProductClientService {
                             throw new RuntimeException("Failed to parse updated product from response", e);
                         }
                     } else {
+                        // Handle other status codes e.g. 404 if product not found by backend for update
                         throw new RuntimeException("Failed to update product: " + httpResponse.statusCode() + " " + httpResponse.body());
                     }
                 });
         } catch (IOException e) {
+            // This exception is for failure to serialize the productDto to JSON
             throw new RuntimeException("Failed to serialize product DTO for update", e);
         }
     }
