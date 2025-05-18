@@ -299,12 +299,42 @@ public class ProductListViewController {
     @FXML
     private void handleDeleteProduct() {
         ProductDto selectedProduct = productTableView.getSelectionModel().getSelectedItem();
-        if (selectedProduct != null) {
-            statusLabel.setText("Delete Product clicked for: " + selectedProduct.getName() + " - Placeholder");
-            // Implementation will be similar, with a confirmation dialog
-            showInfoAlert("Delete Product", "This feature will be implemented in a future commit."); // This call should now be fine
+
+        if (selectedProduct == null) {
+            showInfoAlert("No Product Selected", "Please select a product in the table to delete.");
+            return;
+        }
+
+        // Confirmation Dialog
+        Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmationDialog.setTitle("Delete Product");
+        confirmationDialog.setHeaderText("Confirm Deletion");
+        confirmationDialog.setContentText("Are you sure you want to delete the product: '" + selectedProduct.getName() + "' (ID: " + selectedProduct.getId() + ")?");
+        confirmationDialog.initOwner(deleteProductButton.getScene().getWindow()); // Set owner for proper modality
+
+        Optional<ButtonType> result = confirmationDialog.showAndWait();
+
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            // User confirmed deletion
+            showProgress(true, "Deleting product '" + selectedProduct.getName() + "'...");
+            productClientService.deleteProduct(selectedProduct.getId())
+                .thenRunAsync(() -> Platform.runLater(() -> { // thenRunAsync for CompletableFuture<Void>
+                    showProgress(false, "Product '" + selectedProduct.getName() + "' deleted successfully.");
+                    loadProducts(); // Refresh the list
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        System.err.println("Error deleting product: " + ex.getMessage());
+                        ex.printStackTrace();
+                        Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                        showProgress(false, "Error deleting product: " + cause.getMessage());
+                        showErrorAlert("Failed to Delete Product", cause.getMessage());
+                    });
+                    return null;
+                });
         } else {
-            showInfoAlert("No Selection", "Please select a product to delete."); // This call should now be fine
+            // User cancelled
+            statusLabel.setText("Product deletion cancelled.");
         }
     }
 }

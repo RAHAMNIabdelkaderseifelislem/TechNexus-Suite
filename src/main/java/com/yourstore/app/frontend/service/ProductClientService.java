@@ -122,12 +122,15 @@ public class ProductClientService {
                 .build();
 
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-            .thenAccept(httpResponse -> {
-                if (httpResponse.statusCode() != 204) { // No Content
+            .thenAccept(httpResponse -> { // Using thenAccept for processing response
+                if (httpResponse.statusCode() != 204) { // No Content is the expected success status
+                    // You could try to parse an error message from httpResponse.body() if backend sends one
                     throw new RuntimeException("Failed to delete product: " + httpResponse.statusCode() + " " + httpResponse.body());
                 }
-                // For a 204, there's no body to parse, and we return Void.
+                // For a 204, there's no body to parse, and thenAccept's Consumer<HttpResponse> is fine.
+                // The CompletableFuture<Void> is completed normally.
             });
+            // If an exception occurs in thenAccept, it will complete the returned future exceptionally.
     }
 
      public CompletableFuture<ProductDto> getProductById(Long id) {
