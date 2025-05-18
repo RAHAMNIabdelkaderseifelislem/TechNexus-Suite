@@ -40,6 +40,7 @@ public class AuthClientService {
         this.objectMapper = objectMapper;
     }
 
+        // In AuthClientService.java
     public CompletableFuture<Boolean> login(String username, String password) {
         // Prepare form data
         Map<Object, Object> formData = new HashMap<>();
@@ -60,51 +61,28 @@ public class AuthClientService {
 
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
             .thenApply(response -> {
-                // Spring Security's formLogin usually redirects on success (e.g., to defaultSuccessUrl)
-                // A 200 OK on the /perform_login itself, or a redirect (302) to the success URL indicates success.
-                // A 401 or redirect to failureUrl indicates failure.
-                // We check if a JSESSIONID cookie is set as a primary indicator of successful session creation.
-                Optional<HttpCookie> sessionCookie = httpClient.cookieHandler().map(ch -> {
-                    try {
-                        Map<String, List<String>> headers = new HashMap<>();
-                        // The cookie handler might not expose cookies directly this way
-                        // This is a simplification. Actual cookie check might need to inspect response headers
-                        // or trust that the CookieManager handled it.
-                        // For now, we rely on the response status code and defaultSuccessUrl behavior.
-                        // If the defaultSuccessUrl is hit and returns 200, that's good.
-                        if (response.statusCode() == 200 && response.uri().getPath().equals("/api/v1/users/me")) {
-                            return new HttpCookie("JSESSIONID", "dummy"); // Placeholder
-                        }
-                        List<String> cookieHeaders = response.headers().map().get("Set-Cookie");
-                        if (cookieHeaders != null) {
-                            return cookieHeaders.stream()
-                                .map(HttpCookie::parse)
-                                .flatMap(List::stream)
-                                .filter(c -> "JSESSIONID".equalsIgnoreCase(c.getName()))
-                                .findFirst().orElse(null);
-                        }
-                    } catch (Exception e) {
-                        // ignore
-                    }
-                    return null;
-                }).orElse(null);
-
-                // Successful login if redirected to defaultSuccessUrl and it returns 200
-                // OR if perform_login directly returns 200 (less common for default Spring Security)
-                // AND a session cookie is established (managed by CookieManager)
+                // Successful login if Spring Security redirects to defaultSuccessUrl ('/api/v1/users/me')
+                // and that subsequent request (automatically followed by HttpClient) returns 200 OK.
+                // The CookieManager in the shared HttpClient will have handled the JSESSIONID cookie.
                 if (response.statusCode() == 200 && response.uri().getPath().equals("/api/v1/users/me")) {
-                     System.out.println("Login successful. Session cookie should be managed.");
+                     System.out.println("Login successful. URI: " + response.uri());
+                     // You can optionally try to get user details here to be absolutely sure
+                     // but for now, this check is a strong indicator.
                      return true;
-                } else if (response.statusCode() == 401) { // Unauthorized
-                    System.err.println("Login failed: Unauthorized (401)");
+                } else if (response.statusCode() == 401) {
+                    System.err.println("Login failed: Unauthorized (401) from " + response.uri());
+                    // You might want to read the response body for more details if backend provides them
                     return false;
-                } else if (response.uri().getPath().contains("login") && response.uri().getQuery() != null && response.uri().getQuery().contains("error=true")) {
-                    System.err.println("Login failed: Redirected to login?error=true");
+                } else {
+                    // This case covers redirects to /login?error=true or other unexpected responses
+                    System.err.println("Login failed or unexpected response: Status " + response.statusCode() + ", Final URI: " + response.uri());
+                    // System.err.println("Response body: " + response.body()); // For debugging
                     return false;
                 }
-                // Any other case, assume failure for now, or inspect further
-                System.err.println("Login failed: Status " + response.statusCode() + ", URI: " + response.uri());
-                System.err.println("Response body: " + response.body());
+            }).exceptionally(ex -> {
+                // Handle network errors or other exceptions during the HTTP request
+                System.err.println("Exception during login request: " + ex.getMessage());
+                ex.printStackTrace();
                 return false;
             });
     }

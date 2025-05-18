@@ -1,6 +1,9 @@
 package com.yourstore.app.frontend.controller;
 
 import com.yourstore.app.frontend.FrontendApplication; // If needed for context/stage
+import com.yourstore.app.frontend.service.AuthClientService;
+import com.yourstore.app.frontend.util.StageManager;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -26,13 +29,19 @@ public class MainViewController {
     @FXML private Label backendStatusLabel;
     @FXML private BorderPane mainBorderPane; // Assuming your MainView.fxml root is a BorderPane and you give it an fx:id="mainBorderPane"
 
+    private final AuthClientService authClientService;
+    private final StageManager stageManager;
+
     private final Environment environment;
     private final ConfigurableApplicationContext springContext; // For loading FXML with Spring context
 
     @Autowired
-    public MainViewController(Environment environment, ConfigurableApplicationContext springContext) {
+    public MainViewController(Environment environment, ConfigurableApplicationContext springContext,
+                              AuthClientService authClientService, StageManager stageManager) { // Add new params
         this.environment = environment;
         this.springContext = springContext;
+        this.authClientService = authClientService; // Initialize
+        this.stageManager = stageManager;           // Initialize
     }
 
     @FXML
@@ -47,6 +56,24 @@ public class MainViewController {
             backendStatusLabel.setText("Backend Status: Not Connected");
             backendStatusLabel.setStyle("-fx-text-fill: red;");
         }
+    }
+
+    @FXML
+    private void handleLogout() {
+        authClientService.logout()
+            .thenRunAsync(() -> Platform.runLater(() -> {
+                System.out.println("Logout successful on client side.");
+                stageManager.showLoginView(); // Transition back to login view
+            }))
+            .exceptionally(ex -> {
+                Platform.runLater(() -> {
+                    System.err.println("Logout error: " + ex.getMessage());
+                    ex.printStackTrace();
+                    // Optionally show an error alert, but still attempt to go to login view
+                    stageManager.showLoginView();
+                });
+                return null;
+            });
     }
 
     @FXML
