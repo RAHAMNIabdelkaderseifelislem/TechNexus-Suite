@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.nio.file.Path; // For Path
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -164,46 +166,39 @@ public class SalesListViewController {
     }
 
     @FXML
-    private void handleExportSales() {
-        if (salesList.isEmpty()) {
-            showInfoAlert("No Data", "There are no sales records to export.");
-            return;
+    private void handleExportSales() { // This method was previously a placeholder
+        if (salesList.isEmpty() && false) { // Keep the button active even if list is empty, backend provides all data
+            showInfoAlert("No Data", "There are no sales records currently displayed to export.");
+            // Or, allow export of all data regardless of current view:
+            // statusLabel.setText("Preparing to export all sales data...");
         }
 
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save Sales Records as CSV");
-        fileChooser.setInitialFileName("sales_export_" + System.currentTimeMillis() + ".csv");
+        fileChooser.setTitle("Save All Sales Data as CSV");
+        fileChooser.setInitialFileName("all_sales_export_" + System.currentTimeMillis() + ".csv");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
         
-        File file = fileChooser.showSaveDialog(stageManager.getPrimaryStage()); // Get stage from StageManager
+        File file = fileChooser.showSaveDialog(stageManager.getPrimaryStage());
 
         if (file != null) {
-            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
-                // Write CSV Header for Sales
-                writer.println("SaleID,CustomerName,TotalAmount,SaleDate,Cashier,ItemsCount,ItemDetails");
+            Path targetPath = file.toPath();
+            showProgress(true, "Exporting all sales data to CSV...");
 
-                // Write Data
-                for (SaleDto sale : salesList) {
-                    String itemsSummary = sale.getItems().stream()
-                            .map(item -> String.format("%s (Qty:%d, Price:%.2f)",
-                                    item.getProductName(), item.getQuantity(), item.getPriceAtSale()))
-                            .collect(Collectors.joining("; ")); // Semicolon separated items in one cell
-
-                    writer.printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%d\",\"%s\"\n",
-                            escapeCsv(sale.getId()),
-                            escapeCsv(sale.getCustomerName()),
-                            escapeCsv(sale.getTotalAmount()),
-                            escapeCsv(sale.getSaleDate() != null ? dateTimeFormatter.format(sale.getSaleDate()) : ""),
-                            escapeCsv(sale.getUsername()),
-                            sale.getItems() != null ? sale.getItems().size() : 0,
-                            escapeCsv(itemsSummary)
-                    );
-                }
-                showInfoAlert("Export Successful", "Sales records exported successfully to:\n" + file.getAbsolutePath());
-            } catch (IOException e) {
-                e.printStackTrace();
-                showErrorAlert("Export Failed", "Could not export sales records: " + e.getMessage());
-            }
+            saleClientService.exportAllSalesToCsv(targetPath)
+                .thenAcceptAsync(downloadedPath -> Platform.runLater(() -> {
+                    showProgress(false, "Sales data exported successfully.");
+                    showInfoAlert("Export Successful", "All sales data exported successfully to:\n" + downloadedPath.toString());
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        showProgress(false, "Sales data export failed.");
+                        Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                        showErrorAlert("Export Failed", "Could not export sales data: " + cause.getMessage());
+                    });
+                    return null;
+                });
+        } else {
+            statusLabel.setText("Sales data export cancelled.");
         }
     }
 

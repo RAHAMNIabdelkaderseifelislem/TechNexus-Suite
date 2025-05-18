@@ -16,6 +16,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.Collections;
@@ -160,5 +164,31 @@ public class SaleClientService {
             Platform.runLater(() -> showErrorAlert("Client Error", "Failed to prepare sale data for sending: " + e.getMessage()));
             return CompletableFuture.failedFuture(new RuntimeException("Failed to serialize sale DTO for creation", e));
         }
+    }
+
+    public CompletableFuture<Path> exportAllSalesToCsv(Path targetFile) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(getBaseUrl() + "/export/csv"))
+                .GET() // Server will set Content-Disposition
+                .build();
+
+        // The response body will be the CSV content. We stream it to the target file.
+        return httpClient.sendAsync(request, BodyHandlers.ofFile(targetFile))
+            .thenApply(httpResponse -> {
+                if (httpResponse.statusCode() == 200) {
+                    return httpResponse.body(); // Returns the Path to the downloaded file
+                } else {
+                    // Try to delete the partially downloaded/empty file on error
+                    try { Files.deleteIfExists(targetFile); } catch (IOException ignored) {}
+                    // Error already handled by server or generic client error
+                    // This specific error means the download itself failed post-request
+                    handleHttpError(httpResponse, "export sales to CSV");
+                    throw new RuntimeException("Failed to download sales CSV, status: " + httpResponse.statusCode());
+                }
+            }).exceptionally(ex -> {
+                try { Files.deleteIfExists(targetFile); } catch (IOException ignored) {}
+                Platform.runLater(() -> showErrorAlert("Export Error", "Could not complete sales CSV export: " + ex.getMessage()));
+                throw new RuntimeException("Error during sales CSV export request", ex);
+            });
     }
 }

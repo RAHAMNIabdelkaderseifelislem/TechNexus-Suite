@@ -276,4 +276,8 @@ public class MainViewController {
             showErrorAlert("View Loading Error", "Failed to load view: " + fxmlPath + "\n" + e.getMessage());
         }
     }
+    @FXML
+    private void handleShowDashboard() { // New method
+        loadCenterView("/fxml/DashboardView.fxml");
+    }
 }

@@ -17,6 +17,11 @@
         <VBox alignment="CENTER" spacing="10" style="-fx-padding: 5 10 5 10; -fx-background-color: #f0f0f0;">
             <MenuBar BorderPane.alignment="CENTER">
                 <menus>
+                    <Menu mnemonicParsing="false" text="Overview">
+                        <items>
+                            <MenuItem mnemonicParsing="false" onAction="#handleShowDashboard" text="Dashboard"/>
+                        </items>
+                    </Menu>
                     <Menu mnemonicParsing="false" text="Settings">
                         <items>
                             <MenuItem mnemonicParsing="false" text="Settings"/>

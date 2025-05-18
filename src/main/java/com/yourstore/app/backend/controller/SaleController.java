@@ -7,7 +7,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/v1/sales")
@@ -37,5 +42,14 @@ public class SaleController {
     public ResponseEntity<SaleDto> getSaleById(@PathVariable Long id) {
         SaleDto saleDto = saleService.getSaleById(id);
         return ResponseEntity.ok(saleDto);
+    }
+
+    @GetMapping("/export/csv")
+    public void exportSalesToCsv(HttpServletResponse response) throws IOException {
+        response.setContentType("text/csv");
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        response.setHeader("Content-Disposition", "attachment; filename=\"sales_export_" + timestamp + ".csv\"");
+
+        saleService.exportSalesToCsv(response.getWriter());
     }
 }

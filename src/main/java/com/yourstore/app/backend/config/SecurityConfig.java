@@ -51,9 +51,12 @@ public class SecurityConfig {
                 .antMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                 .antMatchers("/actuator/health").permitAll()
                 .antMatchers("/api/v1/products/**").authenticated()
-                .antMatchers("/api/v1/sales/**").authenticated()
-                .antMatchers("/api/v1/admin/**").hasAuthority(UserRole.ROLE_ADMIN.name()) // Only ADMIN can access admin functions
-                .anyRequest().authenticated() // <<< This is the first anyRequest()
+                .antMatchers(HttpMethod.GET, "/api/v1/sales/export/csv").hasAnyAuthority(UserRole.ROLE_ADMIN.name(), UserRole.ROLE_MANAGER.name()) // Or specific export role
+                .antMatchers(HttpMethod.GET, "/api/v1/sales/**").hasAnyAuthority(UserRole.ROLE_ADMIN.name(), UserRole.ROLE_MANAGER.name(), UserRole.ROLE_STAFF.name())
+                .antMatchers(HttpMethod.POST, "/api/v1/sales/**").hasAnyAuthority(UserRole.ROLE_ADMIN.name(), UserRole.ROLE_MANAGER.name(), UserRole.ROLE_STAFF.name())
+                .antMatchers("/api/v1/dashboard/**").authenticated() // All authenticated users can see dashboard
+                .antMatchers("/api/v1/admin/**").hasAuthority(UserRole.ROLE_ADMIN.name())
+                .anyRequest().authenticated()
         )
             .formLogin(formLogin ->
                 formLogin

@@ -17,6 +17,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.apache.commons.csv.CSVFormat; // Add Apache Commons CSV dependency
+import org.apache.commons.csv.CSVPrinter;
+
+import java.io.IOException;
+import java.io.Writer;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -95,5 +100,50 @@ public class SaleService {
         Sale sale = saleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
         return saleMapper.toDto(sale);
+    }
+
+    @Transactional(readOnly = true)
+    public void exportSalesToCsv(Writer writer) throws IOException {
+        List<Sale> sales = saleRepository.findAll(); // Uses the @EntityGraph version
+
+        // Define CSV Headers
+        String[] saleHeaders = {"SaleID", "CustomerName", "TotalAmount", "SaleDate", "CashierUsername", "CreatedAt", "UpdatedAt"};
+        String[] saleItemHeaders = {"SaleItemID", "SaleID_FK", "ProductID", "ProductName", "Quantity", "PriceAtSale", "Subtotal"};
+
+        // Using a try-with-resources for CSVPrinter for sales might be tricky if you want two sections.
+        // Let's write headers manually and then print records.
+
+        try (CSVPrinter salesCsvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(saleHeaders))) {
+            for (Sale sale : sales) {
+                salesCsvPrinter.printRecord(
+                        sale.getId(),
+                        sale.getCustomerName(),
+                        sale.getTotalAmount(),
+                        sale.getSaleDate(),
+                        sale.getUser() != null ? sale.getUser().getUsername() : "N/A",
+                        sale.getCreatedAt(),
+                        sale.getUpdatedAt()
+                );
+            }
+        } // Sales printer closes here
+
+        // Add a separator or new section for sale items
+        writer.write("\n\nSALE_ITEMS\n"); // Indicates start of sale items section
+
+        try (CSVPrinter saleItemsCsvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(saleItemHeaders))) {
+             for (Sale sale : sales) { // Iterate through sales again to get their items
+                for (SaleItem item : sale.getItems()) {
+                    saleItemsCsvPrinter.printRecord(
+                            item.getId(),
+                            sale.getId(), // Foreign key to Sale
+                            item.getProduct().getId(),
+                            item.getProduct().getName(),
+                            item.getQuantity(),
+                            item.getPriceAtSale(),
+                            item.getSubtotal()
+                    );
+                }
+            }
+        } // Sale items printer closes here
     }
 }

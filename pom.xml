@@ -108,6 +108,11 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
             <!-- For Java 8 Date/Time types like LocalDateTime -->
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.10.0</version> <!-- Or latest stable version -->
+        </dependency>
 
     </dependencies>
 
