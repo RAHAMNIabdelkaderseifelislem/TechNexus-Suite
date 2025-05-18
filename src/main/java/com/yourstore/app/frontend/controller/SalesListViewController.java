@@ -2,18 +2,31 @@ package com.yourstore.app.frontend.controller;
 
 import com.yourstore.app.backend.model.dto.SaleDto;
 import com.yourstore.app.frontend.service.SaleClientService;
+import com.yourstore.app.frontend.util.StageManager;
+
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.FileChooser;
+import javafx.scene.Parent;    // For loaded root
+import org.springframework.context.ConfigurableApplicationContext; // To get beans for controller factory
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Component
 public class SalesListViewController {
@@ -26,6 +39,9 @@ public class SalesListViewController {
     @FXML private TableColumn<SaleDto, String> cashierColumn;
     @FXML private TableColumn<SaleDto, String> itemsColumn; // To display item count or summary
 
+    @FXML private Button exportButton;
+    private final StageManager stageManager;
+
 
     @FXML private Button refreshButton;
     @FXML private ProgressIndicator progressIndicator;
@@ -35,10 +51,16 @@ public class SalesListViewController {
     private final ObservableList<SaleDto> salesList = FXCollections.observableArrayList();
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    private final ConfigurableApplicationContext springContext; // To get controller beans
+
+    // Updated Constructor
     @Autowired
-    public SalesListViewController(SaleClientService saleClientService) {
+    public SalesListViewController(SaleClientService saleClientService, StageManager stageManager, ConfigurableApplicationContext springContext) {
         this.saleClientService = saleClientService;
+        this.stageManager = stageManager;
+        this.springContext = springContext; // Initialize
     }
+
 
     @FXML
     public void initialize() {
@@ -100,15 +122,123 @@ public class SalesListViewController {
 
     @FXML
     private void handleNewSale() {
-        statusLabel.setText("New Sale: Placeholder - To be implemented.");
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "This feature (New Sale screen) will be implemented later.");
-        alert.showAndWait();
+        try {
+            // Use StageManager to show the NewSaleView, similar to how MainView is shown after login
+            // This assumes NewSaleView will replace the current content of the primary stage
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/fxml/NewSaleView.fxml")));
+            loader.setControllerFactory(springContext::getBean); // Crucial for Spring DI in NewSaleViewController
+            Parent newSaleRoot = loader.load();
+
+            // If SalesListView is in the center of MainView's BorderPane, we need access to that BorderPane.
+            // For simplicity now, let's make NewSaleView take over the scene like other main views.
+            // This requires StageManager to be able to set scene on primary stage.
+            // If MainView is still the root, StageManager needs to be able to change its center.
+            // Let's assume StageManager's showView can handle loading into the primary stage's scene.
+            // Or, more directly, we can get the mainBorderPane from MainViewController if needed.
+
+            // Option A: Use StageManager to replace the whole scene (like login -> main)
+            // stageManager.showView("/fxml/NewSaleView.fxml", "Create New Sale");
+            // This assumes StageManager's showView method sets the scene on primaryStage.
+
+            // Option B: If SalesListView is inside MainView's BorderPane, and we want NewSaleView
+            // to also be in the center of that SAME BorderPane. This is more complex from here.
+            // The easiest is if MainViewController exposes a method to set its center.
+            // Or, if SalesListView is always loaded into MainView's center,
+            // its root's parent might be the BorderPane.
+
+            // For now, let's use the main instance of MainViewController if available
+            // to change its center content. This is a common pattern for sub-view navigation.
+            MainViewController mainViewController = springContext.getBean(MainViewController.class);
+            if (mainViewController != null) {
+                mainViewController.loadCenterView("/fxml/NewSaleView.fxml");
+            } else {
+                // Fallback: if MainViewController isn't easily accessible, use StageManager to switch scenes
+                System.err.println("MainViewController not found, switching scene via StageManager for New Sale.");
+                stageManager.showView("/fxml/NewSaleView.fxml", "Create New Sale");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showErrorAlert("Error Loading View", "Could not load the New Sale screen: " + e.getMessage());
+        }
     }
 
     @FXML
     private void handleExportSales() {
-        statusLabel.setText("Export Sales: Placeholder - To be implemented.");
-         Alert alert = new Alert(Alert.AlertType.INFORMATION, "This feature (Exporting sales data) will be implemented later.");
+        if (salesList.isEmpty()) {
+            showInfoAlert("No Data", "There are no sales records to export.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Sales Records as CSV");
+        fileChooser.setInitialFileName("sales_export_" + System.currentTimeMillis() + ".csv");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        
+        File file = fileChooser.showSaveDialog(stageManager.getPrimaryStage()); // Get stage from StageManager
+
+        if (file != null) {
+            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
+                // Write CSV Header for Sales
+                writer.println("SaleID,CustomerName,TotalAmount,SaleDate,Cashier,ItemsCount,ItemDetails");
+
+                // Write Data
+                for (SaleDto sale : salesList) {
+                    String itemsSummary = sale.getItems().stream()
+                            .map(item -> String.format("%s (Qty:%d, Price:%.2f)",
+                                    item.getProductName(), item.getQuantity(), item.getPriceAtSale()))
+                            .collect(Collectors.joining("; ")); // Semicolon separated items in one cell
+
+                    writer.printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%d\",\"%s\"\n",
+                            escapeCsv(sale.getId()),
+                            escapeCsv(sale.getCustomerName()),
+                            escapeCsv(sale.getTotalAmount()),
+                            escapeCsv(sale.getSaleDate() != null ? dateTimeFormatter.format(sale.getSaleDate()) : ""),
+                            escapeCsv(sale.getUsername()),
+                            sale.getItems() != null ? sale.getItems().size() : 0,
+                            escapeCsv(itemsSummary)
+                    );
+                }
+                showInfoAlert("Export Successful", "Sales records exported successfully to:\n" + file.getAbsolutePath());
+            } catch (IOException e) {
+                e.printStackTrace();
+                showErrorAlert("Export Failed", "Could not export sales records: " + e.getMessage());
+            }
+        }
+    }
+
+    // Helper to escape CSV special characters (quotes and commas)
+    private String escapeCsv(Object value) {
+        if (value == null) {
+            return "";
+        }
+        String stringValue = value.toString();
+        if (stringValue.contains("\"") || stringValue.contains(",") || stringValue.contains("\n") || stringValue.contains("\r")) {
+            return "\"" + stringValue.replace("\"", "\"\"") + "\"";
+        }
+        return stringValue;
+    }
+
+    // Ensure showErrorAlert and showInfoAlert methods are present or accessible
+    private void showErrorAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        if (stageManager != null && stageManager.getPrimaryStage() != null && stageManager.getPrimaryStage().isShowing()){
+            alert.initOwner(stageManager.getPrimaryStage());
+        }
+        alert.showAndWait();
+    }
+
+    private void showInfoAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+         if (stageManager != null && stageManager.getPrimaryStage() != null && stageManager.getPrimaryStage().isShowing()){
+            alert.initOwner(stageManager.getPrimaryStage());
+        }
         alert.showAndWait();
     }
 }

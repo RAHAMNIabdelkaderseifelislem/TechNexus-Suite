@@ -35,7 +35,7 @@ public class StageManager {
         showView("/fxml/MainView.fxml", springContext.getEnvironment().getProperty("javafx.application.title", "Computer Store Management"));
     }
 
-    private void showView(String fxmlPath, String title) {
+    public void showView(String fxmlPath, String title) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource(fxmlPath)));
             loader.setControllerFactory(springContext::getBean);

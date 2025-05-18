@@ -44,18 +44,20 @@ public class MainViewController {
     private final Environment environment;
     private final ConfigurableApplicationContext springContext; // For loading FXML with Spring context
 
-    private final AdminClientService adminClientService; // Inject AdminClientService
+    private final AdminClientService adminClientService;
 
-    @FXML private MenuItem backupDbMenuItem; // Add fx:id="backupDbMenuItem" to FXML
+    @FXML private MenuItem backupDbMenuItem;
+    @FXML private Label statusLabel; // Ensure this exists in FXML (e.g., bottom status bar)
+    @FXML private ProgressIndicator progressIndicator; // Ensure this exists in FXML
 
     @Autowired
     public MainViewController(Environment environment, ConfigurableApplicationContext springContext,
                               AuthClientService authClientService, StageManager stageManager,
-                              AdminClientService adminClientService) { // Add new param
+                              AdminClientService adminClientService) { // Added AdminClientService
         this.environment = environment;
         this.springContext = springContext;
-        this.authClientService = authClientService; // Initialize
-        this.stageManager = stageManager;           // Initialize
+        this.authClientService = authClientService;
+        this.stageManager = stageManager;
         this.adminClientService = adminClientService; // Initialize
     }
 
@@ -189,37 +191,44 @@ public class MainViewController {
     @FXML
     private void handleBackupDatabase() {
         DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle("Select Backup Directory");
+        directoryChooser.setTitle("Select Directory to Save Database Backup");
+        // Set initial directory (optional)
+        // String lastBackupPath = preferences.get("lastBackupPath", System.getProperty("user.home"));
+        // directoryChooser.setInitialDirectory(new File(lastBackupPath));
+
         File selectedDirectory = directoryChooser.showDialog(stageManager.getPrimaryStage());
 
         if (selectedDirectory != null) {
             String backupPath = selectedDirectory.getAbsolutePath();
-            statusLabel.setText("Starting database backup to: " + backupPath + "..."); // Assuming you have a statusLabel
-            showProgress(true, "Backing up database..."); // Assuming showProgress method
+            // preferences.put("lastBackupPath", backupPath); // Save for next time (requires Preferences API)
+
+            showProgress(true, "Starting database backup to: " + backupPath + "...");
 
             adminClientService.backupDatabase(backupPath)
                 .thenAcceptAsync(responseMap -> Platform.runLater(() -> {
-                    showProgress(false, responseMap.getOrDefault("message", "Backup completed."));
-                    showInfoAlert("Backup Success", responseMap.getOrDefault("message", "Backup process finished.") +
-                                                    "\nFile: " + responseMap.getOrDefault("path", "N/A"));
+                    String message = responseMap.getOrDefault("message", "Backup process finished.");
+                    String filePath = responseMap.getOrDefault("path", "N/A");
+                    showProgress(false, message);
+                    showInfoAlert("Backup Success", message + "\nFile saved to: " + filePath);
                 }))
                 .exceptionally(ex -> {
                     Platform.runLater(() -> {
                         showProgress(false, "Backup failed.");
                         System.err.println("Backup exception: " + ex.getMessage());
-                        ex.printStackTrace();
-                        showErrorAlert("Backup Failed", "Could not complete database backup: " + ex.getCause().getMessage());
+                        // ex.printStackTrace(); // Already printed by service or deeper layers
+                        Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                        showErrorAlert("Backup Failed", "Could not complete database backup: " + cause.getMessage());
                     });
                     return null;
                 });
         } else {
-            statusLabel.setText("Backup directory selection cancelled.");
+             if (statusLabel != null) statusLabel.setText("Database backup directory selection cancelled.");
+             else System.out.println("Database backup directory selection cancelled.");
         }
     }
 
-    @FXML private Label statusLabel; // Make sure this is in MainViewController and MainView.fxml
-    @FXML private ProgressIndicator progressIndicator; // Make sure this is in MainViewController and MainView.fxml
-
+    
+    
     private void showProgress(boolean show, String message) {
         if (progressIndicator != null) progressIndicator.setVisible(show);
         if (statusLabel != null) statusLabel.setText(message != null ? message : "");
@@ -250,5 +259,21 @@ public class MainViewController {
         stage.show();
     }
 
-    // Placeholder for other menu actions
+    public void loadCenterView(String fxmlPath) {
+        try {
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource(fxmlPath)));
+            loader.setControllerFactory(springContext::getBean); // Use Spring context
+            Parent viewRoot = loader.load();
+            if (mainBorderPane != null) {
+                mainBorderPane.setCenter(viewRoot);
+            } else {
+                System.err.println("mainBorderPane is null in MainViewController. Cannot set center view.");
+                // Fallback or error
+                openInNewWindow(viewRoot, "View"); // Using existing helper
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            showErrorAlert("View Loading Error", "Failed to load view: " + fxmlPath + "\n" + e.getMessage());
+        }
+    }
 }
