@@ -1,5 +1,6 @@
 package com.yourstore.app.backend.config;
 
+import com.yourstore.app.backend.model.enums.UserRole;
 import com.yourstore.app.backend.security.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -50,6 +51,10 @@ public class SecurityConfig {
                     .antMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                     .antMatchers("/actuator/health").permitAll()
                     .antMatchers("/api/v1/products/**").authenticated()
+                    .antMatchers("/api/v1/products/**").authenticated()
+                    .antMatchers(HttpMethod.GET, "/api/v1/sales/**").hasAnyAuthority(UserRole.ROLE_ADMIN.name(), UserRole.ROLE_MANAGER.name(), UserRole.ROLE_STAFF.name())
+                    .antMatchers(HttpMethod.POST, "/api/v1/sales/**").hasAnyAuthority(UserRole.ROLE_ADMIN.name(), UserRole.ROLE_MANAGER.name(), UserRole.ROLE_STAFF.name())
+                    .anyRequest().authenticated()
                     .anyRequest().authenticated()
             )
             .formLogin(formLogin ->

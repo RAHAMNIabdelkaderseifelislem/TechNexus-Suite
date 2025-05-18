@@ -35,8 +35,8 @@
                     <!-- ... -->
                     <Menu mnemonicParsing="false" text="Sales">
                         <items>
-                            <MenuItem mnemonicParsing="false" text="New Sale"/>
-                            <MenuItem mnemonicParsing="false" text="View Sales"/>
+                            <MenuItem mnemonicParsing="false" onAction="#handleNewSaleInMain" text="New Sale (Main Placeholder)"/>
+                            <MenuItem mnemonicParsing="false" onAction="#handleViewSales" text="View Sales Records"/>
                         </items>
                     </Menu>
                     <Menu mnemonicParsing="false" text="Repairs">

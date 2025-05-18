@@ -139,6 +139,44 @@ public class MainViewController {
         }
     }
 
+    @FXML
+    private void handleViewSales() { // New method
+        try {
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/fxml/SalesListView.fxml")));
+            loader.setControllerFactory(springContext::getBean);
+            Parent salesListRoot = loader.load();
+            if (mainBorderPane != null) {
+                mainBorderPane.setCenter(salesListRoot);
+            } else {
+                openInNewWindow(salesListRoot, "View Sales");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            showErrorAlert("Error Loading View", "Could not load the sales view: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleNewSaleInMain() {
+        showInfoAlert("New Sale", "This will open the New Sale screen (to be implemented).");
+    }
+    
+    private void showInfoAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    private void showErrorAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
     private void openInNewWindow(Parent root, String title) {
         Stage stage = new Stage();
         stage.setTitle(title);
