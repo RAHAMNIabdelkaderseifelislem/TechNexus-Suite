@@ -161,7 +161,7 @@ public class MainViewController {
         } catch (IOException e) {
             e.printStackTrace();
             showProgress(false, "Error loading view.");
-            showErrorAlert("View Loading Error", "Failed to load view: " + fxmlPath + "\nError: " + e.getMessage());
+            stageManager.showErrorAlert("View Loading Error", "Failed to load view: " + fxmlPath + "\nError: " + e.getMessage());
         }
     }
     
@@ -179,11 +179,11 @@ public class MainViewController {
     @FXML private void handleViewSales() { loadCenterView("/fxml/SalesListView.fxml"); }
     @FXML private void handleNewPurchaseInMain() { loadCenterView("/fxml/NewPurchaseView.fxml"); }
     @FXML private void handleViewPurchases() { loadCenterView("/fxml/PurchasesListView.fxml"); }
-    @FXML private void handleViewRepairs() { showInfoAlert("Repairs", "Repairs module is under construction."); /* loadCenterView("/fxml/RepairsView.fxml"); */ }
-    @FXML private void handleSalesReport() { showInfoAlert("Sales Report", "Sales report generation is under construction.");}
-    @FXML private void handleStockReport() { showInfoAlert("Stock Report", "Stock report generation is under construction.");}
-    @FXML private void handleAppSettings() { showInfoAlert("Application Settings", "Settings screen is under construction.");}
-    @FXML private void handleAbout() { showInfoAlert("About", "Computer Store Management v1.0\nDeveloped by [Your Name/Company]");}
+    @FXML private void handleViewRepairs() { stageManager.showInfoAlert("Repairs", "The Repairs module will be implemented soon!"); }
+@FXML private void handleSalesReport() { stageManager.showInfoAlert("Sales Report", "Custom sales reports are coming soon!"); }
+@FXML private void handleStockReport() { stageManager.showInfoAlert("Stock Report", "Custom stock reports are coming soon!"); }
+@FXML private void handleAppSettings() { stageManager.showInfoAlert("Application Settings", "Application settings will be available in a future update."); }
+@FXML private void handleAbout() { stageManager.showInfoAlert("About Computer Store Management", "Version 1.0\nDeveloped with JavaFX and Spring Boot."); }
 
 
     @FXML
@@ -206,7 +206,7 @@ public class MainViewController {
                     Platform.runLater(() -> {
                         showProgress(false, "Backup failed.");
                         Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-                        showErrorAlert("Backup Failed", "Database backup error: " + cause.getMessage());
+                        stageManager.showErrorAlert("Backup Failed", "Database backup error: " + cause.getMessage());
                     });
                     return null;
                 });
@@ -226,7 +226,7 @@ public class MainViewController {
             .exceptionally(ex -> {
                 Platform.runLater(() -> {
                     showProgress(false, "Logout error.");
-                    showErrorAlert("Logout Error", "An error occurred during logout: " + ex.getMessage());
+                    stageManager.showErrorAlert("Logout Error", "An error occurred during logout: " + ex.getMessage());
                     stageManager.showLoginView(); // Still attempt to go to login view
                 });
                 return null;
@@ -245,27 +245,7 @@ public class MainViewController {
         if (statusLabel != null) statusLabel.setText(message != null ? message : "");
     }
 
-    private void showErrorAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        if (stageManager.getPrimaryStage() != null && stageManager.getPrimaryStage().isShowing()) {
-             alert.initOwner(stageManager.getPrimaryStage());
-        }
-        alert.showAndWait();
-    }
 
-    private void showInfoAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        if (stageManager.getPrimaryStage() != null && stageManager.getPrimaryStage().isShowing()) {
-             alert.initOwner(stageManager.getPrimaryStage());
-        }
-        alert.showAndWait();
-    }
      private void openInNewWindow(Parent root, String title) { // Fallback if mainBorderPane is null
         Stage stage = new Stage();
         stage.setTitle(title);

@@ -161,14 +161,14 @@ public class SalesListViewController {
 
         } catch (IOException e) {
             e.printStackTrace();
-            showErrorAlert("Error Loading View", "Could not load the New Sale screen: " + e.getMessage());
+            stageManager.showErrorAlert("Error Loading View", "Could not load the New Sale screen: " + e.getMessage());
         }
     }
 
     @FXML
     private void handleExportSales() { // This method was previously a placeholder
         if (salesList.isEmpty() && false) { // Keep the button active even if list is empty, backend provides all data
-            showInfoAlert("No Data", "There are no sales records currently displayed to export.");
+            stageManager.showInfoAlert("No Data", "There are no sales records currently displayed to export.");
             // Or, allow export of all data regardless of current view:
             // statusLabel.setText("Preparing to export all sales data...");
         }
@@ -187,13 +187,13 @@ public class SalesListViewController {
             saleClientService.exportAllSalesToCsv(targetPath)
                 .thenAcceptAsync(downloadedPath -> Platform.runLater(() -> {
                     showProgress(false, "Sales data exported successfully.");
-                    showInfoAlert("Export Successful", "All sales data exported successfully to:\n" + downloadedPath.toString());
+                    stageManager.showInfoAlert("Export Successful", "All sales data exported successfully to:\n" + downloadedPath.toString());
                 }))
                 .exceptionally(ex -> {
                     Platform.runLater(() -> {
                         showProgress(false, "Sales data export failed.");
                         Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-                        showErrorAlert("Export Failed", "Could not export sales data: " + cause.getMessage());
+                        stageManager.showErrorAlert("Export Failed", "Could not export sales data: " + cause.getMessage());
                     });
                     return null;
                 });
@@ -214,26 +214,5 @@ public class SalesListViewController {
         return stringValue;
     }
 
-    // Ensure showErrorAlert and showInfoAlert methods are present or accessible
-    private void showErrorAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        if (stageManager != null && stageManager.getPrimaryStage() != null && stageManager.getPrimaryStage().isShowing()){
-            alert.initOwner(stageManager.getPrimaryStage());
-        }
-        alert.showAndWait();
-    }
 
-    private void showInfoAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-         if (stageManager != null && stageManager.getPrimaryStage() != null && stageManager.getPrimaryStage().isShowing()){
-            alert.initOwner(stageManager.getPrimaryStage());
-        }
-        alert.showAndWait();
-    }
 }

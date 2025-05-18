@@ -154,23 +154,6 @@ public class ProductListViewController {
         statusLabel.setText(message != null ? message : "");
     }
 
-    // Ensure these helper methods are part of the class
-    private void showErrorAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null); // Or a more specific header
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
-
-    private void showInfoAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null); // Or a more specific header
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
-
     @FXML
     private void handleAddProduct() {
         try {
@@ -226,7 +209,7 @@ public class ProductListViewController {
                             ex.printStackTrace();
                             Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
                             showProgress(false, "Error adding product: " + cause.getMessage());
-                            showErrorAlert("Failed to Add Product", cause.getMessage());
+                            stageManager.showErrorAlert("Failed to Add Product", cause.getMessage());
                         });
                         return null;
                     });
@@ -234,7 +217,7 @@ public class ProductListViewController {
 
         } catch (IOException e) {
             e.printStackTrace();
-            showErrorAlert("Dialog Error", "Failed to load the add product dialog: " + e.getMessage());
+            stageManager.showErrorAlert("Dialog Error", "Failed to load the add product dialog: " + e.getMessage());
         }
     }
 
@@ -242,7 +225,7 @@ public class ProductListViewController {
     private void handleEditProduct() {
         ProductDto selectedProduct = productTableView.getSelectionModel().getSelectedItem();
         if (selectedProduct == null) {
-            showInfoAlert("No Product Selected", "Please select a product in the table to edit.");
+            stageManager.showInfoAlert("No Product Selected", "Please select a product in the table to edit.");
             return;
         }
 
@@ -294,7 +277,7 @@ public class ProductListViewController {
                             ex.printStackTrace();
                             Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
                             showProgress(false, "Error updating product: " + cause.getMessage());
-                            showErrorAlert("Failed to Update Product", cause.getMessage());
+                            stageManager.showErrorAlert("Failed to Update Product", cause.getMessage());
                         });
                         return null;
                     });
@@ -302,7 +285,7 @@ public class ProductListViewController {
 
         } catch (IOException e) {
             e.printStackTrace();
-            showErrorAlert("Dialog Error", "Failed to load the edit product dialog: " + e.getMessage());
+            stageManager.showErrorAlert("Dialog Error", "Failed to load the edit product dialog: " + e.getMessage());
         }
     }
 
@@ -311,7 +294,7 @@ public class ProductListViewController {
         ProductDto selectedProduct = productTableView.getSelectionModel().getSelectedItem();
 
         if (selectedProduct == null) {
-            showInfoAlert("No Product Selected", "Please select a product in the table to delete.");
+            stageManager.showInfoAlert("No Product Selected", "Please select a product in the table to delete.");
             return;
         }
 
@@ -338,7 +321,7 @@ public class ProductListViewController {
                         ex.printStackTrace();
                         Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
                         showProgress(false, "Error deleting product: " + cause.getMessage());
-                        showErrorAlert("Failed to Delete Product", cause.getMessage());
+                        stageManager.showErrorAlert("Failed to Delete Product", cause.getMessage());
                     });
                     return null;
                 });
@@ -351,7 +334,7 @@ public class ProductListViewController {
     @FXML
     private void handleExportProductsToCsv() {
         if (productList.isEmpty()) {
-            showInfoAlert("No Data", "There are no products to export.");
+            stageManager.showInfoAlert("No Data", "There are no products to export.");
             return;
         }
 
@@ -381,10 +364,10 @@ public class ProductListViewController {
                             escapeCsv(product.getUpdatedAt() != null ? dateTimeFormatter.format(product.getUpdatedAt()) : "")
                     );
                 }
-                showInfoAlert("Export Successful", "Product list exported successfully to:\n" + file.getAbsolutePath());
+                stageManager.showInfoAlert("Export Successful", "Product list exported successfully to:\n" + file.getAbsolutePath());
             } catch (IOException e) {
                 e.printStackTrace();
-                showErrorAlert("Export Failed", "Could not export product list: " + e.getMessage());
+                stageManager.showErrorAlert("Export Failed", "Could not export product list: " + e.getMessage());
             }
         }
     }
