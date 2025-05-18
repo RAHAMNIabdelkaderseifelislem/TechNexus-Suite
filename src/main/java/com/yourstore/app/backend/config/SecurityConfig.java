@@ -46,17 +46,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            .authorizeRequests(authorizeRequests ->
-                authorizeRequests
-                    .antMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                    .antMatchers("/actuator/health").permitAll()
-                    .antMatchers("/api/v1/products/**").authenticated()
-                    .antMatchers("/api/v1/products/**").authenticated()
-                    .antMatchers(HttpMethod.GET, "/api/v1/sales/**").hasAnyAuthority(UserRole.ROLE_ADMIN.name(), UserRole.ROLE_MANAGER.name(), UserRole.ROLE_STAFF.name())
-                    .antMatchers(HttpMethod.POST, "/api/v1/sales/**").hasAnyAuthority(UserRole.ROLE_ADMIN.name(), UserRole.ROLE_MANAGER.name(), UserRole.ROLE_STAFF.name())
-                    .anyRequest().authenticated()
-                    .anyRequest().authenticated()
-            )
+            .authorizeRequests(authorizeRequests -> // Renamed from authorizeHttpRequests to authorizeRequests for Spring Boot 2.7
+            authorizeRequests
+                .antMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                .antMatchers("/actuator/health").permitAll()
+                .antMatchers("/api/v1/products/**").authenticated()
+                .antMatchers("/api/v1/sales/**").authenticated()
+                .anyRequest().authenticated() // <<< This is the first anyRequest()
+        )
             .formLogin(formLogin ->
                 formLogin
                     .loginPage("/login")
