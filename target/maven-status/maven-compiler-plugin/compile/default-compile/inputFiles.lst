@@ -1,3 +1,4 @@
+E:\work\TechNexusSuite\src\main\java\com\yourstore\app\frontend\service\ProductClientService.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\frontend\controller\MainViewController.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\mapper\ProductMapper.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\model\enums\ProductCategory.java
@@ -9,6 +10,7 @@ E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\repository\Produc
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\exception\GlobalExceptionHandler.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\service\ProductService.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\model\entity\base\Auditable.java
+E:\work\TechNexusSuite\src\main\java\com\yourstore\app\frontend\controller\ProductListViewController.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\model\dto\ProductDto.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\model\entity\Product.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\frontend\FrontendApplication.java

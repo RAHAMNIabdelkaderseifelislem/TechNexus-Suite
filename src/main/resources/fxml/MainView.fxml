@@ -8,7 +8,7 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.layout.BorderPane?>
 
-<BorderPane xmlns="http://javafx.com/javafx/11"
+<BorderPane fx:id="mainBorderPane" xmlns="http://javafx.com/javafx/11"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.yourstore.app.frontend.controller.MainViewController">
     <top>
@@ -20,12 +20,15 @@
                         <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit"/>
                     </items>
                 </Menu>
+                <!-- ... existing MenuBar ... -->
                 <Menu mnemonicParsing="false" text="Stock">
                     <items>
-                        <MenuItem mnemonicParsing="false" text="View Products"/>
+                        <MenuItem fx:id="manageProductsMenuItem" mnemonicParsing="false" onAction="#handleManageProducts" text="Manage Products"/>
+                        <MenuItem mnemonicParsing="false" text="View Products"/> <!-- This might be the old one, consider replacing -->
                         <MenuItem mnemonicParsing="false" text="Add Product"/>
                     </items>
                 </Menu>
+                <!-- ... -->
                 <Menu mnemonicParsing="false" text="Sales">
                     <items>
                         <MenuItem mnemonicParsing="false" text="New Sale"/>
