@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DialogPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory?>
+<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
+
+
+<DialogPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.yourstore.app.frontend.controller.ProductEditDialogController"
+            prefWidth="500.0">
+    <header>
+        <Label fx:id="headerLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Add New Product"/>
+    </header>
+    <content>
+        <GridPane hgap="10" vgap="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <Label text="Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <TextField fx:id="nameField" GridPane.columnIndex="1" GridPane.rowIndex="0" promptText="Product Name"/>
+
+            <Label text="Category:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <ComboBox fx:id="categoryComboBox" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="2000.0" promptText="Select Category"/>
+
+            <Label text="Description:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <TextArea fx:id="descriptionArea" GridPane.columnIndex="1" GridPane.rowIndex="2" prefHeight="80.0" promptText="Product Description" wrapText="true"/>
+
+            <Label text="Supplier:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+            <TextField fx:id="supplierField" GridPane.columnIndex="1" GridPane.rowIndex="3" promptText="Supplier Name"/>
+
+            <Label text="Purchase Price:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+            <Spinner fx:id="purchasePriceSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="4" initialValue="0.0" min="0" max="100000.0" amountToStepBy="0.01" prefWidth="2000.0">
+                 <valueFactory>
+                    <SpinnerValueFactory.DoubleSpinnerValueFactory min="0.0" max="100000.0" initialValue="0.0" amountToStepBy="0.01"/>
+                </valueFactory>
+            </Spinner>
+
+            <Label text="Selling Price:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+            <Spinner fx:id="sellingPriceSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="5" initialValue="0.0" min="0" max="100000.0" amountToStepBy="0.01" prefWidth="2000.0">
+                <valueFactory>
+                    <SpinnerValueFactory.DoubleSpinnerValueFactory min="0.0" max="100000.0" initialValue="0.0" amountToStepBy="0.01"/>
+                </valueFactory>
+            </Spinner>
+
+
+            <Label text="Quantity in Stock:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+            <Spinner fx:id="quantitySpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="6" initialValue="0" min="0" max="10000" amountToStepBy="1" prefWidth="2000.0">
+                 <valueFactory>
+                    <SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="10000" initialValue="0" amountToStepBy="1"/>
+                </valueFactory>
+            </Spinner>
+
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="100.0"/>
+                <ColumnConstraints hgrow="ALWAYS"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+            </rowConstraints>
+        </GridPane>
+    </content>
+    <buttonTypes>
+        <ButtonType fx:id="saveButtonType" text="Save" buttonData="OK_DONE"/>
+        <ButtonType text="Cancel" buttonData="CANCEL_CLOSE"/>
+    </buttonTypes>
+    <graphic>
+        <Label fx:id="validationErrorLabel" style="-fx-text-fill: red;" wrapText="true"/>
+    </graphic>
+</DialogPane>

@@ -6,6 +6,7 @@ E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\config\SecurityCo
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\controller\ProductController.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\launcher\AppLauncher.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\BackendApplication.java
+E:\work\TechNexusSuite\src\main\java\com\yourstore\app\frontend\controller\ProductEditDialogController.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\exception\ResourceNotFoundException.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\repository\ProductRepository.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\exception\GlobalExceptionHandler.java

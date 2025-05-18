@@ -7,15 +7,20 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ConfigurableApplicationContext; // For loading FXML with Spring context
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Component
 public class ProductListViewController {
@@ -40,13 +45,14 @@ public class ProductListViewController {
     @FXML private Label statusLabel;
 
     private final ProductClientService productClientService;
+    private final ConfigurableApplicationContext springContext; // Inject Spring context
     private final ObservableList<ProductDto> productList = FXCollections.observableArrayList();
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-
     @Autowired
-    public ProductListViewController(ProductClientService productClientService) {
+    public ProductListViewController(ProductClientService productClientService, ConfigurableApplicationContext springContext) {
         this.productClientService = productClientService;
+        this.springContext = springContext; // Initialize Spring context
     }
 
     @FXML
@@ -138,31 +144,99 @@ public class ProductListViewController {
         statusLabel.setText(message != null ? message : "");
     }
 
+    // Ensure these helper methods are part of the class
+    private void showErrorAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null); // Or a more specific header
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
 
-    @FXML
-    private void handleAddProduct() {
-        // To be implemented: Open a dialog/new view to add a product
-        statusLabel.setText("Add Product clicked - Placeholder");
-        System.out.println("Add Product clicked");
-         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-         alert.setTitle("Information");
-         alert.setHeaderText("Add Product");
-         alert.setContentText("This feature will be implemented in a future commit.");
-         alert.showAndWait();
+    private void showInfoAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null); // Or a more specific header
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     @FXML
+    private void handleAddProduct() {
+        try {
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/fxml/ProductEditDialog.fxml")));
+            loader.setControllerFactory(springContext::getBean); // Use Spring context
+
+            DialogPane dialogPane = loader.load();
+            ProductEditDialogController controller = loader.getController();
+            controller.setDialogMode(false); // Set to Add mode
+            controller.setProduct(null);     // No existing product to edit
+            controller.setDialogPane(dialogPane); // Pass the dialogPane to controller
+
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setDialogPane(dialogPane);
+            dialog.setTitle("Add New Product");
+            dialog.initOwner(addProductButton.getScene().getWindow()); // Set owner for proper modality
+
+            // This is how you get the "Save" button from the DialogPane
+            Button saveButtonNode = (Button) dialogPane.lookupButton(dialogPane.getButtonTypes().stream()
+                            .filter(bt -> bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
+                            .findFirst()
+                            .orElseThrow(() -> new IllegalStateException("Save ButtonType not found")));
+
+
+            // Override action for the save button to include validation from controller
+            saveButtonNode.setOnAction(event -> {
+                if (controller.handleSave()) { // Perform validation and update ProductDto
+                    // If validation passes, manually close the dialog by simulating a click on the original button type
+                    // This ensures the dialog.showAndWait() below will return the correct ButtonType
+                    dialog.setResult(dialogPane.getButtonTypes().stream()
+                            .filter(bt -> bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
+                            .findFirst().get());
+                    dialog.close();
+                } else {
+                    event.consume(); // Prevent dialog from closing if validation fails
+                }
+            });
+
+
+            Optional<ButtonType> result = dialog.showAndWait();
+
+            if (result.isPresent() && result.get().getButtonData() == ButtonBar.ButtonData.OK_DONE && controller.isSaveClicked()) {
+                ProductDto newProduct = controller.getProduct();
+                showProgress(true, "Adding product...");
+                productClientService.createProduct(newProduct)
+                    .thenAcceptAsync(savedProduct -> Platform.runLater(() -> {
+                        showProgress(false, "Product '" + savedProduct.getName() + "' added successfully.");
+                        loadProducts(); // Refresh the list
+                    }))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            System.err.println("Error adding product: " + ex.getMessage());
+                            ex.printStackTrace();
+                            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                            showProgress(false, "Error adding product: " + cause.getMessage());
+                            showErrorAlert("Failed to Add Product", cause.getMessage());
+                        });
+                        return null;
+                    });
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showErrorAlert("Dialog Error", "Failed to load the add product dialog: " + e.getMessage());
+        }
+    }
+
+     @FXML
     private void handleEditProduct() {
         ProductDto selectedProduct = productTableView.getSelectionModel().getSelectedItem();
         if (selectedProduct != null) {
-            // To be implemented: Open a dialog/new view to edit selectedProduct
             statusLabel.setText("Edit Product clicked for: " + selectedProduct.getName() + " - Placeholder");
-            System.out.println("Edit Product: " + selectedProduct.getName());
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Information");
-            alert.setHeaderText("Edit Product");
-            alert.setContentText("This feature will be implemented in a future commit.");
-            alert.showAndWait();
+            // Implementation will be similar to handleAddProduct but for editing
+            showInfoAlert("Edit Product", "This feature will be implemented in the next commit."); // This call should now be fine
+        } else {
+            showInfoAlert("No Selection", "Please select a product to edit."); // This call should now be fine
         }
     }
 
@@ -170,14 +244,11 @@ public class ProductListViewController {
     private void handleDeleteProduct() {
         ProductDto selectedProduct = productTableView.getSelectionModel().getSelectedItem();
         if (selectedProduct != null) {
-            // To be implemented: Confirm and delete selectedProduct using ProductClientService
             statusLabel.setText("Delete Product clicked for: " + selectedProduct.getName() + " - Placeholder");
-            System.out.println("Delete Product: " + selectedProduct.getName());
-             Alert alert = new Alert(Alert.AlertType.INFORMATION);
-             alert.setTitle("Information");
-             alert.setHeaderText("Delete Product");
-             alert.setContentText("This feature will be implemented in a future commit.");
-             alert.showAndWait();
+            // Implementation will be similar, with a confirmation dialog
+            showInfoAlert("Delete Product", "This feature will be implemented in a future commit."); // This call should now be fine
+        } else {
+            showInfoAlert("No Selection", "Please select a product to delete."); // This call should now be fine
         }
     }
 }
