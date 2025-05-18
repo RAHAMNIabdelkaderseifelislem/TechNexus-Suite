@@ -1,6 +1,8 @@
 package com.yourstore.app.frontend;
 
 import com.yourstore.app.backend.BackendApplication;
+import com.yourstore.app.frontend.util.StageManager;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -16,45 +18,31 @@ import java.util.Objects;
 public class FrontendApplication extends Application {
 
     private ConfigurableApplicationContext springContext;
+    private StageManager stageManager; // Add StageManager
 
     @Override
     public void init() throws Exception {
-        // Option 1: Initialize Spring context here if not already done by a separate launcher
-        // springContext = new SpringApplicationBuilder(BackendApplication.class).headless(false).run();
-
-        // Option 2: Retrieve context if started by an external launcher (our AppLauncher)
         springContext = BackendApplication.getSpringContext();
         if (springContext == null) {
-            // Fallback if AppLauncher didn't start it (e.g., running JavaFX directly, though not intended)
             System.out.println("Spring context not initialized by launcher, initializing now...");
             springContext = BackendApplication.startSpring(new String[]{});
         }
+        // Get StageManager bean from Spring context
+        stageManager = springContext.getBean(StageManager.class);
     }
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/fxml/MainView.fxml")));
+        stageManager.initialize(primaryStage); // Initialize StageManager with primary stage
+        stageManager.showLoginView();         // Show login view first
 
-        // If your controller needs Spring DI, you can set the controller factory
-        // This allows Spring to manage your JavaFX controllers
-        if (springContext != null) {
-            fxmlLoader.setControllerFactory(springContext::getBean);
-        } else {
-            System.err.println("Spring context is null. Controllers will not be Spring-managed.");
-        }
-
-        Parent root = fxmlLoader.load();
-
-        primaryStage.setTitle(springContext != null ?
-                              springContext.getEnvironment().getProperty("javafx.application.title", "Computer Store Management") :
-                              "Computer Store Management");
-        primaryStage.setScene(new Scene(root, 800, 600));
         primaryStage.setOnCloseRequest(event -> {
             Platform.exit();
-            System.exit(0); // Ensures the application fully terminates
+            System.exit(0);
         });
-        primaryStage.show();
+        // primaryStage.show() is handled by stageManager.showView()
     }
+
 
     @Override
     public void stop() throws Exception {

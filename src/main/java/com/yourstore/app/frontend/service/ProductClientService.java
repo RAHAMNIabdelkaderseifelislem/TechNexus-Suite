@@ -7,6 +7,8 @@ import com.yourstore.app.backend.model.dto.ProductDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -27,6 +29,12 @@ public class ProductClientService {
 
     private String getBaseUrl() {
         return "http://localhost:" + serverPort + "/api/v1/products";
+    }
+
+    @Autowired // Constructor injection for shared beans
+    public ProductClientService(HttpClient httpClient, ObjectMapper objectMapper) {
+        this.httpClient = httpClient;
+        this.objectMapper = objectMapper;
     }
 
     public ProductClientService() {
@@ -53,8 +61,10 @@ public class ProductClientService {
                     } catch (IOException e) {
                         throw new RuntimeException("Failed to parse product list from response", e);
                     }
-                } else {
-                    // Consider more specific error handling based on status code
+                } else if (httpResponse.statusCode() == 401) {
+                     throw new RuntimeException("Unauthorized: Access Denied. Please login.");
+                }
+                else {
                     throw new RuntimeException("Failed to fetch products: " + httpResponse.statusCode() + " " + httpResponse.body());
                 }
             });
