@@ -20,6 +20,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 @Component
@@ -28,6 +29,8 @@ public class MainViewController {
     @FXML private Label welcomeLabel;
     @FXML private Label backendStatusLabel;
     @FXML private BorderPane mainBorderPane; // Assuming your MainView.fxml root is a BorderPane and you give it an fx:id="mainBorderPane"
+    @FXML private Label loggedInUserLabel; // Add this for the new label
+
 
     private final AuthClientService authClientService;
     private final StageManager stageManager;
@@ -52,10 +55,36 @@ public class MainViewController {
         if (springContext != null && springContext.isActive()) {
             backendStatusLabel.setText("Backend Status: Connected (Port: " + environment.getProperty("server.port","N/A") + ")");
             backendStatusLabel.setStyle("-fx-text-fill: green;");
+            // Load user details after confirming backend connection
+            loadUserDetails();
         } else {
             backendStatusLabel.setText("Backend Status: Not Connected");
             backendStatusLabel.setStyle("-fx-text-fill: red;");
         }
+    }
+
+    private void loadUserDetails() {
+        authClientService.getCurrentUserDetails()
+            .thenAcceptAsync(userDetailsMap -> Platform.runLater(() -> {
+                if (userDetailsMap != null && userDetailsMap.containsKey("username")) {
+                    String username = (String) userDetailsMap.get("username");
+                    List<String> roles = (List<String>) userDetailsMap.getOrDefault("roles", List.of());
+                    loggedInUserLabel.setText("User: " + username + " " + roles.toString());
+                    // Here you could also adapt UI based on roles
+                    // For example: adminMenu.setVisible(roles.contains("ROLE_ADMIN"));
+                } else {
+                    loggedInUserLabel.setText("User: Unknown (or not fully logged in)");
+                    // This case might indicate an issue or that /users/me wasn't hit properly after login
+                    // Or session expired and this view was reloaded without re-authentication
+                }
+            }))
+            .exceptionally(ex -> {
+                Platform.runLater(() -> {
+                    loggedInUserLabel.setText("User: Error loading details");
+                    System.err.println("Failed to load user details in MainView: " + ex.getMessage());
+                });
+                return null;
+            });
     }
 
     @FXML

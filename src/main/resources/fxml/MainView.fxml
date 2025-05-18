@@ -3,6 +3,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuItem?>
@@ -12,56 +14,54 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.yourstore.app.frontend.controller.MainViewController">
     <top>
-        <MenuBar BorderPane.alignment="CENTER">
-            <menus>
-                <Menu mnemonicParsing="false" text="File">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Settings"/>
-                        <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit"/>
-                    </items>
-                </Menu>
-                <!-- ... existing MenuBar ... -->
-                <Menu mnemonicParsing="false" text="Stock">
-                    <items>
-                        <MenuItem fx:id="manageProductsMenuItem" mnemonicParsing="false" onAction="#handleManageProducts" text="Manage Products"/>
-                        <MenuItem mnemonicParsing="false" text="View Products"/> <!-- This might be the old one, consider replacing -->
-                        <MenuItem mnemonicParsing="false" text="Add Product"/>
-                    </items>
-                </Menu>
-                <!-- ... -->
-                <Menu mnemonicParsing="false" text="Sales">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="New Sale"/>
-                        <MenuItem mnemonicParsing="false" text="View Sales"/>
-                    </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Repairs">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="New Repair"/>
-                        <MenuItem mnemonicParsing="false" text="View Repairs"/>
-                    </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Reports">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Sales Report"/>
-                        <MenuItem mnemonicParsing="false" text="Stock Report"/>
-                    </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Help">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="About"/>
-                    </items>
-                </Menu>
-                <!-- Inside the "File" Menu for example -->
-                <Menu mnemonicParsing="false" text="File">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Settings"/>
-                        <MenuItem fx:id="logoutMenuItem" mnemonicParsing="false" onAction="#handleLogout" text="Logout"/>
-                        <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit"/>
-                    </items>
-                </Menu>
-            </menus>
-        </MenuBar>
+        <VBox alignment="CENTER" spacing="10" style="-fx-padding: 5 10 5 10; -fx-background-color: #f0f0f0;">
+            <MenuBar BorderPane.alignment="CENTER">
+                <menus>
+                    <Menu mnemonicParsing="false" text="File">
+                        <items>
+                            <MenuItem mnemonicParsing="false" text="Settings"/>
+                            <MenuItem fx:id="logoutMenuItem" mnemonicParsing="false" onAction="#handleLogout" text="Logout"/>
+                            <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit"/>
+                        </items>
+                    </Menu>
+                    <!-- ... existing MenuBar ... -->
+                    <Menu mnemonicParsing="false" text="Stock">
+                        <items>
+                            <MenuItem fx:id="manageProductsMenuItem" mnemonicParsing="false" onAction="#handleManageProducts" text="Manage Products"/>
+                            <MenuItem mnemonicParsing="false" text="View Products"/> <!-- This might be the old one, consider replacing -->
+                            <MenuItem mnemonicParsing="false" text="Add Product"/>
+                        </items>
+                    </Menu>
+                    <!-- ... -->
+                    <Menu mnemonicParsing="false" text="Sales">
+                        <items>
+                            <MenuItem mnemonicParsing="false" text="New Sale"/>
+                            <MenuItem mnemonicParsing="false" text="View Sales"/>
+                        </items>
+                    </Menu>
+                    <Menu mnemonicParsing="false" text="Repairs">
+                        <items>
+                            <MenuItem mnemonicParsing="false" text="New Repair"/>
+                            <MenuItem mnemonicParsing="false" text="View Repairs"/>
+                        </items>
+                    </Menu>
+                    <Menu mnemonicParsing="false" text="Reports">
+                        <items>
+                            <MenuItem mnemonicParsing="false" text="Sales Report"/>
+                            <MenuItem mnemonicParsing="false" text="Stock Report"/>
+                        </items>
+                    </Menu>
+                    <Menu mnemonicParsing="false" text="Help">
+                        <items>
+                            <MenuItem mnemonicParsing="false" text="About"/>
+                        </items>
+                    </Menu>
+                </menus>
+            </MenuBar>
+            <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-padding: 5 10 5 10; -fx-background-color: #f0f0f0;">
+                    <Label fx:id="loggedInUserLabel" text="User: Not Logged In" style="-fx-font-style: italic;"/>
+            </HBox>
+        </VBox>
     </top>
     <center>
         <StackPane BorderPane.alignment="CENTER">

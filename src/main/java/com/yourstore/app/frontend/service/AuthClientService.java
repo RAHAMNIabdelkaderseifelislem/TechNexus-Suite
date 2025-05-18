@@ -113,12 +113,21 @@ public class AuthClientService {
             .thenApply(response -> {
                 if (response.statusCode() == 200) {
                     try {
+                        // Assuming the response is a JSON map like {"username": "admin", "roles": ["ROLE_ADMIN"]}
                         return objectMapper.readValue(response.body(), new TypeReference<Map<String, Object>>() {});
                     } catch (IOException e) {
+                        System.err.println("Failed to parse user details: " + e.getMessage());
                         throw new RuntimeException("Failed to parse user details", e);
                     }
+                } else if (response.statusCode() == 401) {
+                    System.err.println("Not authenticated to get user details (401).");
+                    return null; // Or throw an AuthenticationException
                 }
-                return null; // Or throw exception for non-200
+                System.err.println("Failed to get user details, status: " + response.statusCode());
+                return null; // Or throw a generic exception
+            }).exceptionally(ex -> {
+                System.err.println("Exception while fetching user details: " + ex.getMessage());
+                return null; // Or rethrow wrapped exception
             });
     }
 }
