@@ -1,23 +1,44 @@
 package com.yourstore.app.backend.model.dto;
 
+// Import validation annotations
+import javax.validation.constraints.*; // For Spring Boot 2.x with javax.validation
+
 import com.yourstore.app.backend.model.enums.ProductCategory;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class ProductDto {
     private Long id;
+
+    @NotBlank(message = "Product name cannot be blank")
+    @Size(min = 3, max = 255, message = "Product name must be between 3 and 255 characters")
     private String name;
+
+    @Size(max = 2000, message = "Description cannot exceed 2000 characters")
     private String description;
+
+    @NotNull(message = "Product category cannot be null")
     private ProductCategory category;
+
+    @Size(max = 100, message = "Supplier name cannot exceed 100 characters")
     private String supplier;
+
+    @DecimalMin(value = "0.0", inclusive = true, message = "Purchase price cannot be negative")
+    @Digits(integer=12, fraction=2, message = "Purchase price format is invalid (e.g., 1234567800.99)")
     private BigDecimal purchasePrice;
+
+    @NotNull(message = "Selling price cannot be null")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Selling price must be greater than 0")
+    @Digits(integer=12, fraction=2, message = "Selling price format is invalid (e.g., 1234567800.99)")
     private BigDecimal sellingPrice;
+
+    @Min(value = 0, message = "Quantity in stock cannot be negative")
     private int quantityInStock;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     // Constructors, Getters, Setters
-
     public ProductDto() {}
 
     public ProductDto(Long id, String name, String description, ProductCategory category, String supplier, BigDecimal purchasePrice, BigDecimal sellingPrice, int quantityInStock, LocalDateTime createdAt, LocalDateTime updatedAt) {

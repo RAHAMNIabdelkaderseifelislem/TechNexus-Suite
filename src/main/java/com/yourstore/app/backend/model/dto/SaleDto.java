@@ -4,9 +4,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+
 public class SaleDto {
     private Long id;
+    @Size(max = 100, message = "Customer name cannot exceed 100 characters")
     private String customerName;
+    @NotEmpty(message = "Sale must contain at least one item")
+    @Valid // Crucial for validating each SaleItemDto in the list
     private List<SaleItemDto> items;
     private BigDecimal totalAmount;
     private LocalDateTime saleDate;

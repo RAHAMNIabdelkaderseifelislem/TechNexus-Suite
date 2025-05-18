@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import javax.validation.Valid; // Import for @Valid
 
 import java.util.List;
 
@@ -21,15 +22,15 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductDto> createProduct(@RequestBody ProductDto productDto) {
-        // Basic validation can be added here or using @Valid with Bean Validation
-        if (productDto.getName() == null || productDto.getName().trim().isEmpty() ||
-            productDto.getCategory() == null || productDto.getSellingPrice() == null) {
-             // More specific error messages can be thrown from service or use Bean Validation
-             return ResponseEntity.badRequest().body(null); // Or a more descriptive error DTO
-        }
+    public ResponseEntity<ProductDto> createProduct(@Valid @RequestBody ProductDto productDto) { // Add @Valid
         ProductDto createdProduct = productService.createProduct(productDto);
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductDto> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductDto productDto) { // Add @Valid
+        ProductDto updatedProduct = productService.updateProduct(id, productDto);
+        return ResponseEntity.ok(updatedProduct);
     }
 
     @GetMapping
@@ -44,15 +45,6 @@ public class ProductController {
         return ResponseEntity.ok(productDto);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ProductDto> updateProduct(@PathVariable Long id, @RequestBody ProductDto productDto) {
-        if (productDto.getName() == null || productDto.getName().trim().isEmpty() ||
-            productDto.getCategory() == null || productDto.getSellingPrice() == null) {
-            return ResponseEntity.badRequest().body(null);
-        }
-        ProductDto updatedProduct = productService.updateProduct(id, productDto);
-        return ResponseEntity.ok(updatedProduct);
-    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {

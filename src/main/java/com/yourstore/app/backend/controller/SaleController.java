@@ -12,6 +12,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import javax.validation.Valid;
+
 import javax.servlet.http.HttpServletResponse;
 
 @RestController
@@ -26,8 +28,7 @@ public class SaleController {
     }
 
     @PostMapping
-    public ResponseEntity<SaleDto> createSale(@RequestBody SaleDto saleDto) {
-        // Add validation for saleDto if necessary, e.g. @Valid
+    public ResponseEntity<SaleDto> createSale(@Valid @RequestBody SaleDto saleDto) { // Add @Valid
         SaleDto createdSale = saleService.createSale(saleDto);
         return new ResponseEntity<>(createdSale, HttpStatus.CREATED);
     }

@@ -81,7 +81,6 @@ public class DatabaseService {
             System.out.println("Database backup successful: " + backupFilePath);
             return backupFilePath;
         } else {
-            // Capture error stream for more details
             StringBuilder errorOutput = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
                 String line;
@@ -89,9 +88,17 @@ public class DatabaseService {
                     errorOutput.append(line).append("\n");
                 }
             }
+            String commonError = errorOutput.toString();
             System.err.println("Database backup failed. Exit code: " + exitCode);
-            System.err.println("Error output:\n" + errorOutput.toString());
-            throw new IOException("Database backup failed with exit code " + exitCode + ". Error: " + errorOutput.toString());
+            System.err.println("Error output:\n" + commonError);
+
+            String userMessage = "Database backup failed with exit code " + exitCode + ".";
+            if (commonError.toLowerCase().contains("not recognized") || commonError.toLowerCase().contains("not found") || commonError.toLowerCase().contains("no such file")) {
+                userMessage += " This might indicate 'mysqldump' is not installed or not in the system's PATH. Please check its configuration.";
+            } else if (!commonError.trim().isEmpty()){
+                userMessage += " Details: " + commonError.substring(0, Math.min(commonError.length(), 150)) + "..."; // Show snippet
+            }
+            throw new IOException(userMessage); // Throw with potentially more helpful message
         }
     }
 

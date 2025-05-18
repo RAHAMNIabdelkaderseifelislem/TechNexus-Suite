@@ -1,11 +1,16 @@
 package com.yourstore.app.backend.model.dto;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public class SaleItemDto {
     private Long id;
-    private Long productId; // Or full ProductDto if needed for display directly
+
+    @NotNull(message = "Product ID for sale item cannot be null")
+    private Long productId;
     private String productName;
+    @Min(value = 1, message = "Quantity for sale item must be at least 1")
     private int quantity;
     private BigDecimal priceAtSale;
     private BigDecimal subtotal;
