@@ -52,6 +52,7 @@ public class SecurityConfig {
                 .antMatchers("/actuator/health").permitAll()
                 .antMatchers("/api/v1/products/**").authenticated()
                 .antMatchers("/api/v1/sales/**").authenticated()
+                .antMatchers("/api/v1/admin/**").hasAuthority(UserRole.ROLE_ADMIN.name()) // Only ADMIN can access admin functions
                 .anyRequest().authenticated() // <<< This is the first anyRequest()
         )
             .formLogin(formLogin ->

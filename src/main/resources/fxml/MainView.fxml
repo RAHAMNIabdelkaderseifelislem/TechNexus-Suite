@@ -17,7 +17,7 @@
         <VBox alignment="CENTER" spacing="10" style="-fx-padding: 5 10 5 10; -fx-background-color: #f0f0f0;">
             <MenuBar BorderPane.alignment="CENTER">
                 <menus>
-                    <Menu mnemonicParsing="false" text="File">
+                    <Menu mnemonicParsing="false" text="Settings">
                         <items>
                             <MenuItem mnemonicParsing="false" text="Settings"/>
                             <MenuItem fx:id="logoutMenuItem" mnemonicParsing="false" onAction="#handleLogout" text="Logout"/>
@@ -49,6 +49,12 @@
                         <items>
                             <MenuItem mnemonicParsing="false" text="Sales Report"/>
                             <MenuItem mnemonicParsing="false" text="Stock Report"/>
+                        </items>
+                    </Menu>
+                    <Menu mnemonicParsing="false" text="File"> <!-- Or text="Admin" if you create a new one -->
+                        <items>
+                            <MenuItem fx:id="backupDbMenuItem" mnemonicParsing="false" onAction="#handleBackupDatabase" text="Backup Database"/>
+                            <!-- Other items -->
                         </items>
                     </Menu>
                     <Menu mnemonicParsing="false" text="Help">

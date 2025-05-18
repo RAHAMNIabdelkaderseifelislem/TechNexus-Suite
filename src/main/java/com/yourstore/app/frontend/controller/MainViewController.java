@@ -1,6 +1,8 @@
 package com.yourstore.app.frontend.controller;
 
+import com.yourstore.app.backend.model.enums.UserRole;
 import com.yourstore.app.frontend.FrontendApplication; // If needed for context/stage
+import com.yourstore.app.frontend.service.AdminClientService;
 import com.yourstore.app.frontend.service.AuthClientService;
 import com.yourstore.app.frontend.util.StageManager;
 
@@ -11,7 +13,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.BorderPane; // Assuming your MainView's root is BorderPane
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +24,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -38,29 +44,36 @@ public class MainViewController {
     private final Environment environment;
     private final ConfigurableApplicationContext springContext; // For loading FXML with Spring context
 
+    private final AdminClientService adminClientService; // Inject AdminClientService
+
+    @FXML private MenuItem backupDbMenuItem; // Add fx:id="backupDbMenuItem" to FXML
+
     @Autowired
     public MainViewController(Environment environment, ConfigurableApplicationContext springContext,
-                              AuthClientService authClientService, StageManager stageManager) { // Add new params
+                              AuthClientService authClientService, StageManager stageManager,
+                              AdminClientService adminClientService) { // Add new param
         this.environment = environment;
         this.springContext = springContext;
         this.authClientService = authClientService; // Initialize
         this.stageManager = stageManager;           // Initialize
+        this.adminClientService = adminClientService; // Initialize
     }
 
     @FXML
     public void initialize() {
-        String appTitle = environment.getProperty("javafx.application.title", "Computer Store App");
-        welcomeLabel.setText("Welcome to " + appTitle + "!");
-
-        if (springContext != null && springContext.isActive()) {
-            backendStatusLabel.setText("Backend Status: Connected (Port: " + environment.getProperty("server.port","N/A") + ")");
-            backendStatusLabel.setStyle("-fx-text-fill: green;");
-            // Load user details after confirming backend connection
-            loadUserDetails();
-        } else {
-            backendStatusLabel.setText("Backend Status: Not Connected");
-            backendStatusLabel.setStyle("-fx-text-fill: red;");
-        }
+        loadUserDetails();
+        // Conditionally show admin menu items based on roles
+        authClientService.getCurrentUserDetails().thenAcceptAsync(details -> Platform.runLater(()->{
+            if (details != null && details.get("roles") instanceof List) {
+                List<String> roles = (List<String>) details.get("roles");
+                if (backupDbMenuItem != null) {
+                    backupDbMenuItem.setVisible(roles.contains(UserRole.ROLE_ADMIN.name()));
+                }
+                // Add similar logic for other admin-only menu items/buttons
+            } else if (backupDbMenuItem != null) {
+                 backupDbMenuItem.setVisible(false); // Hide if roles can't be determined
+            }
+        }));
     }
 
     private void loadUserDetails() {
@@ -159,6 +172,45 @@ public class MainViewController {
     @FXML
     private void handleNewSaleInMain() {
         showInfoAlert("New Sale", "This will open the New Sale screen (to be implemented).");
+    }
+    
+    @FXML
+    private void handleBackupDatabase() {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select Backup Directory");
+        File selectedDirectory = directoryChooser.showDialog(stageManager.getPrimaryStage());
+
+        if (selectedDirectory != null) {
+            String backupPath = selectedDirectory.getAbsolutePath();
+            statusLabel.setText("Starting database backup to: " + backupPath + "..."); // Assuming you have a statusLabel
+            showProgress(true, "Backing up database..."); // Assuming showProgress method
+
+            adminClientService.backupDatabase(backupPath)
+                .thenAcceptAsync(responseMap -> Platform.runLater(() -> {
+                    showProgress(false, responseMap.getOrDefault("message", "Backup completed."));
+                    showInfoAlert("Backup Success", responseMap.getOrDefault("message", "Backup process finished.") +
+                                                    "\nFile: " + responseMap.getOrDefault("path", "N/A"));
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        showProgress(false, "Backup failed.");
+                        System.err.println("Backup exception: " + ex.getMessage());
+                        ex.printStackTrace();
+                        showErrorAlert("Backup Failed", "Could not complete database backup: " + ex.getCause().getMessage());
+                    });
+                    return null;
+                });
+        } else {
+            statusLabel.setText("Backup directory selection cancelled.");
+        }
+    }
+
+    @FXML private Label statusLabel; // Make sure this is in MainViewController and MainView.fxml
+    @FXML private ProgressIndicator progressIndicator; // Make sure this is in MainViewController and MainView.fxml
+
+    private void showProgress(boolean show, String message) {
+        if (progressIndicator != null) progressIndicator.setVisible(show);
+        if (statusLabel != null) statusLabel.setText(message != null ? message : "");
     }
     
     private void showInfoAlert(String title, String content) {
