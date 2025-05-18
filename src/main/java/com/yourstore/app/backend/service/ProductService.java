@@ -27,9 +27,14 @@ public class ProductService {
     @Transactional
     public ProductDto createProduct(ProductDto productDto) {
         Product product = productMapper.toEntity(productDto);
-        // Add any validation or business logic before saving
         if (product.getSellingPrice() == null) {
-            throw new IllegalArgumentException("Selling price cannot be null.");
+            throw new IllegalArgumentException("Selling price cannot be null for a new product.");
+        }
+        if (product.getName() == null || product.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Product name cannot be empty.");
+        }
+        if (product.getCategory() == null) {
+            throw new IllegalArgumentException("Product category cannot be null.");
         }
         Product savedProduct = productRepository.save(product);
         return productMapper.toDto(savedProduct);
@@ -49,5 +54,35 @@ public class ProductService {
         return productMapper.toDto(product);
     }
 
-    // Update and Delete methods will be added in subsequent commits
+    @Transactional
+    public ProductDto updateProduct(Long id, ProductDto productDto) {
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id + " for update."));
+
+        // Use mapper to update fields from DTO to existing entity
+        productMapper.updateEntityFromDto(productDto, existingProduct);
+
+        // Add any specific validation for update
+        if (existingProduct.getSellingPrice() == null) {
+            throw new IllegalArgumentException("Selling price cannot be null when updating product.");
+        }
+        if (existingProduct.getName() == null || existingProduct.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Product name cannot be empty when updating.");
+        }
+        if (existingProduct.getCategory() == null) {
+            throw new IllegalArgumentException("Product category cannot be null when updating.");
+        }
+
+
+        Product updatedProduct = productRepository.save(existingProduct);
+        return productMapper.toDto(updatedProduct);
+    }
+
+    @Transactional
+    public void deleteProduct(Long id) {
+        if (!productRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Product not found with id: " + id + " for deletion.");
+        }
+        productRepository.deleteById(id);
+    }
 }

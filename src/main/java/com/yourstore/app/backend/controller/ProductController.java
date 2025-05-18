@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/products") // Base path for all product-related endpoints
+@RequestMapping("/api/v1/products")
 public class ProductController {
 
     private final ProductService productService;
@@ -23,8 +23,10 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<ProductDto> createProduct(@RequestBody ProductDto productDto) {
         // Basic validation can be added here or using @Valid with Bean Validation
-        if (productDto.getName() == null || productDto.getName().trim().isEmpty()) {
-             return ResponseEntity.badRequest().build(); // Or throw a specific validation exception
+        if (productDto.getName() == null || productDto.getName().trim().isEmpty() ||
+            productDto.getCategory() == null || productDto.getSellingPrice() == null) {
+             // More specific error messages can be thrown from service or use Bean Validation
+             return ResponseEntity.badRequest().body(null); // Or a more descriptive error DTO
         }
         ProductDto createdProduct = productService.createProduct(productDto);
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
@@ -42,5 +44,19 @@ public class ProductController {
         return ResponseEntity.ok(productDto);
     }
 
-    // Endpoints for Update and Delete will be added later
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductDto> updateProduct(@PathVariable Long id, @RequestBody ProductDto productDto) {
+        if (productDto.getName() == null || productDto.getName().trim().isEmpty() ||
+            productDto.getCategory() == null || productDto.getSellingPrice() == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        ProductDto updatedProduct = productService.updateProduct(id, productDto);
+        return ResponseEntity.ok(updatedProduct);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build(); // Standard response for successful deletion
+    }
 }
