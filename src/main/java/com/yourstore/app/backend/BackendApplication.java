@@ -3,9 +3,11 @@ package com.yourstore.app.backend;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 // Scan components in the base package and its sub-packages
 @SpringBootApplication(scanBasePackages = "com.yourstore.app")
+@EnableJpaAuditing // Enable JPA Auditing
 public class BackendApplication {
 
     // Keep a reference to the Spring context if needed by JavaFX later,
