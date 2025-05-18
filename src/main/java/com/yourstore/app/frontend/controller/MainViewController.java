@@ -1,23 +1,22 @@
 package com.yourstore.app.frontend.controller;
 
 import com.yourstore.app.backend.model.enums.UserRole;
-import com.yourstore.app.frontend.FrontendApplication; // If needed for context/stage
 import com.yourstore.app.frontend.service.AdminClientService;
 import com.yourstore.app.frontend.service.AuthClientService;
 import com.yourstore.app.frontend.util.StageManager;
-
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.layout.BorderPane; // Assuming your MainView's root is BorderPane
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -27,53 +26,58 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Component
 public class MainViewController {
 
-    @FXML private Label welcomeLabel;
-    @FXML private Label backendStatusLabel;
-    @FXML private BorderPane mainBorderPane; // Assuming your MainView.fxml root is a BorderPane and you give it an fx:id="mainBorderPane"
-    @FXML private Label loggedInUserLabel; // Add this for the new label
+    @FXML private BorderPane mainBorderPane;
+    @FXML private Label loggedInUserLabel;
+    @FXML private MenuItem logoutMenuItem;
+    @FXML private MenuItem manageProductsMenuItem; // From Stock menu
+    @FXML private MenuItem backupDbMenuItem;     // From Admin menu
+    @FXML private TilePane mainTilesPane;        // For main content area
+    @FXML private Label statusLabel;
+    @FXML private ProgressIndicator progressIndicator;
 
-
-    private final AuthClientService authClientService;
-    private final StageManager stageManager;
 
     private final Environment environment;
-    private final ConfigurableApplicationContext springContext; // For loading FXML with Spring context
-
+    private final ConfigurableApplicationContext springContext;
+    private final AuthClientService authClientService;
+    private final StageManager stageManager;
     private final AdminClientService adminClientService;
-
-    @FXML private MenuItem backupDbMenuItem;
-    @FXML private Label statusLabel; // Ensure this exists in FXML (e.g., bottom status bar)
-    @FXML private ProgressIndicator progressIndicator; // Ensure this exists in FXML
 
     @Autowired
     public MainViewController(Environment environment, ConfigurableApplicationContext springContext,
                               AuthClientService authClientService, StageManager stageManager,
-                              AdminClientService adminClientService) { // Added AdminClientService
+                              AdminClientService adminClientService) {
         this.environment = environment;
         this.springContext = springContext;
         this.authClientService = authClientService;
         this.stageManager = stageManager;
-        this.adminClientService = adminClientService; // Initialize
+        this.adminClientService = adminClientService;
     }
 
     @FXML
     public void initialize() {
+        showProgress(false, "Ready.");
         loadUserDetails();
-        // Conditionally show admin menu items based on roles
-        authClientService.getCurrentUserDetails().thenAcceptAsync(details -> Platform.runLater(()->{
-            if (details != null && details.get("roles") instanceof List) {
-                List<String> roles = (List<String>) details.get("roles");
-                if (backupDbMenuItem != null) {
+        createMainTiles();
+        setupRoleBasedVisibility();
+    }
+    
+    private void setupRoleBasedVisibility() {
+         authClientService.getCurrentUserDetails().thenAcceptAsync(details -> Platform.runLater(()->{
+            if (backupDbMenuItem != null) { 
+                if (details != null && details.get("roles") instanceof List) {
+                    @SuppressWarnings("unchecked")
+                    List<String> roles = (List<String>) details.get("roles");
                     backupDbMenuItem.setVisible(roles.contains(UserRole.ROLE_ADMIN.name()));
+                    // Add more role-based visibility for menus or tiles here
+                } else {
+                    backupDbMenuItem.setVisible(false); 
                 }
-                // Add similar logic for other admin-only menu items/buttons
-            } else if (backupDbMenuItem != null) {
-                 backupDbMenuItem.setVisible(false); // Hide if roles can't be determined
             }
         }));
     }
@@ -85,125 +89,112 @@ public class MainViewController {
                     String username = (String) userDetailsMap.get("username");
                     List<String> roles = (List<String>) userDetailsMap.getOrDefault("roles", List.of());
                     loggedInUserLabel.setText("User: " + username + " " + roles.toString());
-                    // Here you could also adapt UI based on roles
-                    // For example: adminMenu.setVisible(roles.contains("ROLE_ADMIN"));
                 } else {
-                    loggedInUserLabel.setText("User: Unknown (or not fully logged in)");
-                    // This case might indicate an issue or that /users/me wasn't hit properly after login
-                    // Or session expired and this view was reloaded without re-authentication
+                    loggedInUserLabel.setText("User: Unknown");
                 }
             }))
             .exceptionally(ex -> {
-                Platform.runLater(() -> {
-                    loggedInUserLabel.setText("User: Error loading details");
-                    System.err.println("Failed to load user details in MainView: " + ex.getMessage());
-                });
+                Platform.runLater(() -> loggedInUserLabel.setText("User: Error loading details"));
                 return null;
             });
     }
 
-    @FXML
-    private void handleLogout() {
-        authClientService.logout()
-            .thenRunAsync(() -> Platform.runLater(() -> {
-                System.out.println("Logout successful on client side.");
-                stageManager.showLoginView(); // Transition back to login view
-            }))
-            .exceptionally(ex -> {
-                Platform.runLater(() -> {
-                    System.err.println("Logout error: " + ex.getMessage());
-                    ex.printStackTrace();
-                    // Optionally show an error alert, but still attempt to go to login view
-                    stageManager.showLoginView();
-                });
-                return null;
-            });
+    private void createMainTiles() {
+        mainTilesPane.getChildren().clear();
+        mainTilesPane.setTileAlignment(Pos.CENTER_LEFT); // Align tiles
+
+        // Define tiles: Text, Icon Path (relative to resources), Action
+        Button dashboardTile = createTile("Dashboard", "/icons/dashboard_64.png", event -> handleShowDashboard());
+        Button productsTile = createTile("Products", "/icons/products_64.png", event -> handleManageProducts());
+        Button newSaleTile = createTile("New Sale", "/icons/new_sale_64.png", event -> handleNewSaleInMain());
+        Button salesRecordsTile = createTile("Sales Records", "/icons/sales_records_64.png", event -> handleViewSales());
+        Button newPurchaseTile = createTile("New Purchase", "/icons/new_purchase_64.png", event -> handleNewPurchaseInMain());
+        Button purchasesRecordsTile = createTile("Purchase Records", "/icons/purchase_records_64.png", event -> handleViewPurchases());
+        Button repairsTile = createTile("Repairs", "/icons/repairs_64.png", event -> handleViewRepairs());
+        // Add more tiles as needed
+
+        mainTilesPane.getChildren().addAll(dashboardTile, productsTile, newSaleTile, salesRecordsTile, newPurchaseTile, purchasesRecordsTile, repairsTile);
     }
 
-    @FXML
-    private void handleExit() {
-        Platform.exit();
-        System.exit(0);
-    }
+    private Button createTile(String text, String iconPath, EventHandler<ActionEvent> action) {
+        Button tileButton = new Button(text);
+        tileButton.setPrefSize(180, 150); // Increased size for better touch/click
+        tileButton.setContentDisplay(ContentDisplay.TOP); // Icon on top, text below
+        tileButton.getStyleClass().add("main-tile-button"); // Add a style class for CSS
 
-    @FXML
-    private void handleManageProducts() {
+        // Load icon
         try {
-            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/fxml/ProductListView.fxml")));
-            loader.setControllerFactory(springContext::getBean); // IMPORTANT: Use Spring context for controller creation
-            Parent productListRoot = loader.load();
-
-            // Option 1: Replace center content of MainView (if MainView is a BorderPane)
-            // Ensure MainView.fxml's root element has fx:id="mainBorderPane"
-            if (mainBorderPane != null) {
-                 mainBorderPane.setCenter(productListRoot);
+            // Check if iconPath starts with a slash, if not, add it for consistency with getResourceAsStream
+            String correctedIconPath = iconPath.startsWith("/") ? iconPath : "/" + iconPath;
+            if (getClass().getResource(correctedIconPath) != null) {
+                ImageView iconView = new ImageView(new Image(getClass().getResourceAsStream(correctedIconPath)));
+                iconView.setFitHeight(64); // Adjusted icon size
+                iconView.setFitWidth(64);
+                tileButton.setGraphic(iconView);
             } else {
-                // Option 2: Open in a new window/stage (Modal or Non-Modal)
-                System.err.println("mainBorderPane is null. Opening Product List in a new window as fallback.");
-                openInNewWindow(productListRoot, "Manage Products");
+                 System.err.println("Icon not found: " + correctedIconPath + " (Trying from: " + iconPath + ")");
             }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            // Show error alert
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Could not load Product Management View");
-            alert.setContentText("An error occurred: " + e.getMessage());
-            alert.showAndWait();
+        } catch (Exception e) {
+            System.err.println("Error loading icon " + iconPath + ": " + e.getMessage());
+            // e.printStackTrace();
         }
+        tileButton.setOnAction(action);
+        return tileButton;
     }
 
-    @FXML
-    private void handleViewSales() { // New method
-        try {
-            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/fxml/SalesListView.fxml")));
-            loader.setControllerFactory(springContext::getBean);
-            Parent salesListRoot = loader.load();
-            if (mainBorderPane != null) {
-                mainBorderPane.setCenter(salesListRoot);
-            } else {
-                openInNewWindow(salesListRoot, "View Sales");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            showErrorAlert("Error Loading View", "Could not load the sales view: " + e.getMessage());
+    public void loadCenterView(String fxmlPath) {
+        showProgress(true, "Loading view...");
+        // If already on dashboard and trying to load dashboard, or current view is same as fxmlPath, do nothing or just refresh
+        if (mainBorderPane.getCenter() != null && mainBorderPane.getCenter().getId() != null && mainBorderPane.getCenter().getId().equals(fxmlPathToId(fxmlPath))) {
+             showProgress(false, "View already loaded.");
+             // Optionally call a refresh method on the controller if it exists
+             return;
         }
-    }
 
-    @FXML
-    private void handleNewSaleInMain() {
         try {
-            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/fxml/NewSaleView.fxml")));
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource(fxmlPath)));
             loader.setControllerFactory(springContext::getBean);
-            Parent newSaleRoot = loader.load();
-            if (mainBorderPane != null) {
-                mainBorderPane.setCenter(newSaleRoot);
-            } else {
-                openInNewWindow(newSaleRoot, "New Sale");
-            }
+            Parent viewRoot = loader.load();
+            viewRoot.setId(fxmlPathToId(fxmlPath)); // Set an ID for the root to check if it's already loaded
+            mainBorderPane.setCenter(viewRoot);
+            showProgress(false, "View loaded.");
         } catch (IOException e) {
             e.printStackTrace();
-            showErrorAlert("Error Loading View", "Could not load the new sale view: " + e.getMessage());
+            showProgress(false, "Error loading view.");
+            showErrorAlert("View Loading Error", "Failed to load view: " + fxmlPath + "\nError: " + e.getMessage());
         }
     }
     
+    private String fxmlPathToId(String fxmlPath) {
+        // Simple way to create an ID from FXML path, e.g., "/fxml/DashboardView.fxml" -> "DashboardView"
+        if(fxmlPath == null) return null;
+        return fxmlPath.substring(fxmlPath.lastIndexOf('/') + 1).replace(".fxml", "");
+    }
+
+
+    // --- Menu Action Handlers ---
+    @FXML private void handleShowDashboard() { loadCenterView("/fxml/DashboardView.fxml"); }
+    @FXML private void handleManageProducts() { loadCenterView("/fxml/ProductListView.fxml"); }
+    @FXML private void handleNewSaleInMain() { loadCenterView("/fxml/NewSaleView.fxml"); }
+    @FXML private void handleViewSales() { loadCenterView("/fxml/SalesListView.fxml"); }
+    @FXML private void handleNewPurchaseInMain() { loadCenterView("/fxml/NewPurchaseView.fxml"); }
+    @FXML private void handleViewPurchases() { loadCenterView("/fxml/PurchasesListView.fxml"); }
+    @FXML private void handleViewRepairs() { showInfoAlert("Repairs", "Repairs module is under construction."); /* loadCenterView("/fxml/RepairsView.fxml"); */ }
+    @FXML private void handleSalesReport() { showInfoAlert("Sales Report", "Sales report generation is under construction.");}
+    @FXML private void handleStockReport() { showInfoAlert("Stock Report", "Stock report generation is under construction.");}
+    @FXML private void handleAppSettings() { showInfoAlert("Application Settings", "Settings screen is under construction.");}
+    @FXML private void handleAbout() { showInfoAlert("About", "Computer Store Management v1.0\nDeveloped by [Your Name/Company]");}
+
+
     @FXML
     private void handleBackupDatabase() {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Select Directory to Save Database Backup");
-        // Set initial directory (optional)
-        // String lastBackupPath = preferences.get("lastBackupPath", System.getProperty("user.home"));
-        // directoryChooser.setInitialDirectory(new File(lastBackupPath));
-
         File selectedDirectory = directoryChooser.showDialog(stageManager.getPrimaryStage());
 
         if (selectedDirectory != null) {
             String backupPath = selectedDirectory.getAbsolutePath();
-            // preferences.put("lastBackupPath", backupPath); // Save for next time (requires Preferences API)
-
             showProgress(true, "Starting database backup to: " + backupPath + "...");
-
             adminClientService.backupDatabase(backupPath)
                 .thenAcceptAsync(responseMap -> Platform.runLater(() -> {
                     String message = responseMap.getOrDefault("message", "Backup process finished.");
@@ -214,32 +205,44 @@ public class MainViewController {
                 .exceptionally(ex -> {
                     Platform.runLater(() -> {
                         showProgress(false, "Backup failed.");
-                        System.err.println("Backup exception: " + ex.getMessage());
-                        // ex.printStackTrace(); // Already printed by service or deeper layers
                         Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-                        showErrorAlert("Backup Failed", "Could not complete database backup: " + cause.getMessage());
+                        showErrorAlert("Backup Failed", "Database backup error: " + cause.getMessage());
                     });
                     return null;
                 });
         } else {
-             if (statusLabel != null) statusLabel.setText("Database backup directory selection cancelled.");
-             else System.out.println("Database backup directory selection cancelled.");
+             showProgress(false, "Backup directory selection cancelled.");
         }
     }
 
+    @FXML
+    private void handleLogout() {
+        showProgress(true, "Logging out...");
+        authClientService.logout()
+            .thenRunAsync(() -> Platform.runLater(() -> {
+                showProgress(false, "Logged out.");
+                stageManager.showLoginView();
+            }))
+            .exceptionally(ex -> {
+                Platform.runLater(() -> {
+                    showProgress(false, "Logout error.");
+                    showErrorAlert("Logout Error", "An error occurred during logout: " + ex.getMessage());
+                    stageManager.showLoginView(); // Still attempt to go to login view
+                });
+                return null;
+            });
+    }
+
+    @FXML
+    private void handleExit() {
+        Platform.exit();
+        System.exit(0);
+    }
     
-    
+    // --- Helper Methods ---
     private void showProgress(boolean show, String message) {
         if (progressIndicator != null) progressIndicator.setVisible(show);
         if (statusLabel != null) statusLabel.setText(message != null ? message : "");
-    }
-    
-    private void showInfoAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
     }
 
     private void showErrorAlert(String title, String content) {
@@ -247,37 +250,26 @@ public class MainViewController {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
+        if (stageManager.getPrimaryStage() != null && stageManager.getPrimaryStage().isShowing()) {
+             alert.initOwner(stageManager.getPrimaryStage());
+        }
         alert.showAndWait();
     }
 
-    private void openInNewWindow(Parent root, String title) {
+    private void showInfoAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        if (stageManager.getPrimaryStage() != null && stageManager.getPrimaryStage().isShowing()) {
+             alert.initOwner(stageManager.getPrimaryStage());
+        }
+        alert.showAndWait();
+    }
+     private void openInNewWindow(Parent root, String title) { // Fallback if mainBorderPane is null
         Stage stage = new Stage();
         stage.setTitle(title);
         stage.setScene(new Scene(root));
-        // stage.initModality(Modality.APPLICATION_MODAL); // If you want it to block other windows
-        // stage.initOwner(mainBorderPane.getScene().getWindow()); // If opening from an existing window
         stage.show();
-    }
-
-    public void loadCenterView(String fxmlPath) {
-        try {
-            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource(fxmlPath)));
-            loader.setControllerFactory(springContext::getBean); // Use Spring context
-            Parent viewRoot = loader.load();
-            if (mainBorderPane != null) {
-                mainBorderPane.setCenter(viewRoot);
-            } else {
-                System.err.println("mainBorderPane is null in MainViewController. Cannot set center view.");
-                // Fallback or error
-                openInNewWindow(viewRoot, "View"); // Using existing helper
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            showErrorAlert("View Loading Error", "Failed to load view: " + fxmlPath + "\n" + e.getMessage());
-        }
-    }
-    @FXML
-    private void handleShowDashboard() { // New method
-        loadCenterView("/fxml/DashboardView.fxml");
     }
 }
