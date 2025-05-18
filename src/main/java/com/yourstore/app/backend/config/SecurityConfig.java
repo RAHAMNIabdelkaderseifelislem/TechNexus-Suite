@@ -5,38 +5,31 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer; // For CSRF
+// For Spring Boot 2.7.x, these imports are more common for CSRF disabling:
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+// Or directly: import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@EnableWebSecurity // Enables Spring Security's web security support
+@EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Disable CSRF protection, common for stateless REST APIs
-            // if you are not using browser-based form submissions directly to Spring backend
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(authorizeRequests ->
+            .csrf(AbstractHttpConfigurer::disable) // Correct way to disable CSRF in this version
+            .authorizeRequests(authorizeRequests ->
                 authorizeRequests
-                    // Permit all GET, POST, PUT, DELETE requests to product endpoints
-                    .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/v1/products/**").permitAll()
-                    .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").permitAll()
-                    .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").permitAll()
-                    // You might want to permit access to actuator health if you use it
-                    // .requestMatchers("/actuator/health").permitAll()
-                    // For any other request, require authentication (default behavior if not specified)
+                    .antMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
+                    .antMatchers(HttpMethod.POST, "/api/v1/products/**").permitAll()
+                    .antMatchers(HttpMethod.PUT, "/api/v1/products/**").permitAll()
+                    .antMatchers(HttpMethod.DELETE, "/api/v1/products/**").permitAll()
+                    // Example for actuator health endpoint if you use it
+                    // .antMatchers("/actuator/health").permitAll()
                     .anyRequest().authenticated()
             )
-            // Spring Security by default enables HTTP Basic and form login.
-            // If you want to allow unauthenticated access to specific paths (like above)
-            // and keep others secured, this is fine.
-            // If you want NO security for now (not recommended beyond initial testing),
-            // you could permitAll() for anyRequest(), but the above is better.
-            .httpBasic(basic -> {}); // Enable HTTP Basic auth for other secured endpoints if any
-                                      // or customize as needed, e.g. .formLogin(form -> {});
+            .httpBasic(basic -> {}); // Enable HTTP Basic for other secured endpoints
 
         return http.build();
     }

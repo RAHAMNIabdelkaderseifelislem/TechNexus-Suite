@@ -2,6 +2,7 @@ E:\work\TechNexusSuite\src\main\java\com\yourstore\app\frontend\service\ProductC
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\frontend\controller\MainViewController.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\mapper\ProductMapper.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\model\enums\ProductCategory.java
+E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\config\SecurityConfig.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\controller\ProductController.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\launcher\AppLauncher.java
 E:\work\TechNexusSuite\src\main\java\com\yourstore\app\backend\BackendApplication.java
