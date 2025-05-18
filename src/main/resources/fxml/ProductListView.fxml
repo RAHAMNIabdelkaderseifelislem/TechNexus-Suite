@@ -23,6 +23,7 @@
                 <Button fx:id="addProductButton" mnemonicParsing="false" onAction="#handleAddProduct" text="Add Product"/>
                 <Button fx:id="editProductButton" mnemonicParsing="false" onAction="#handleEditProduct" text="Edit Selected" disable="true"/>
                 <Button fx:id="deleteProductButton" mnemonicParsing="false" onAction="#handleDeleteProduct" text="Delete Selected" disable="true"/>
+                <Button fx:id="exportProductsCsvButton" onAction="#handleExportProductsToCsv" text="Export to CSV"/>
                 <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefreshProducts" text="Refresh"/>
                  <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="25.0" prefWidth="25.0"/>
             </HBox>

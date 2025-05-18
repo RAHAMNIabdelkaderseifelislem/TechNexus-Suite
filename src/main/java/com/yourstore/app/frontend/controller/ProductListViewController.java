@@ -3,6 +3,8 @@ package com.yourstore.app.frontend.controller;
 import com.yourstore.app.backend.model.dto.ProductDto;
 import com.yourstore.app.backend.model.enums.ProductCategory;
 import com.yourstore.app.frontend.service.ProductClientService;
+import com.yourstore.app.frontend.util.StageManager;
+
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -10,11 +12,16 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.FileChooser;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext; // For loading FXML with Spring context
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -43,15 +50,18 @@ public class ProductListViewController {
     @FXML private Button refreshButton;
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Label statusLabel;
+    @FXML private Button exportProductsCsvButton;
 
     private final ProductClientService productClientService;
+    private final StageManager stageManager; // To close or navigate
     private final ConfigurableApplicationContext springContext; // Inject Spring context
     private final ObservableList<ProductDto> productList = FXCollections.observableArrayList();
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
-    public ProductListViewController(ProductClientService productClientService, ConfigurableApplicationContext springContext) {
+    public ProductListViewController(ProductClientService productClientService, StageManager stageManager, ConfigurableApplicationContext springContext) {
         this.productClientService = productClientService;
+        this.stageManager = stageManager;
         this.springContext = springContext; // Initialize Spring context
     }
 
@@ -336,5 +346,59 @@ public class ProductListViewController {
             // User cancelled
             statusLabel.setText("Product deletion cancelled.");
         }
+    }
+
+    @FXML
+    private void handleExportProductsToCsv() {
+        if (productList.isEmpty()) {
+            showInfoAlert("No Data", "There are no products to export.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Product List as CSV");
+        fileChooser.setInitialFileName("products_export_" + System.currentTimeMillis() + ".csv");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        File file = fileChooser.showSaveDialog(stageManager.getPrimaryStage()); // Assuming stageManager is available
+
+        if (file != null) {
+            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
+                // Write CSV Header
+                writer.println("ID,Name,Category,Description,Supplier,PurchasePrice,SellingPrice,QuantityInStock,CreatedAt,UpdatedAt");
+
+                // Write Data
+                for (ProductDto product : productList) { // productList is your ObservableList<ProductDto>
+                    writer.printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%d\",\"%s\",\"%s\"\n",
+                            escapeCsv(product.getId()),
+                            escapeCsv(product.getName()),
+                            escapeCsv(product.getCategory()),
+                            escapeCsv(product.getDescription()),
+                            escapeCsv(product.getSupplier()),
+                            escapeCsv(product.getPurchasePrice()),
+                            escapeCsv(product.getSellingPrice()),
+                            product.getQuantityInStock(),
+                            escapeCsv(product.getCreatedAt() != null ? dateTimeFormatter.format(product.getCreatedAt()) : ""),
+                            escapeCsv(product.getUpdatedAt() != null ? dateTimeFormatter.format(product.getUpdatedAt()) : "")
+                    );
+                }
+                showInfoAlert("Export Successful", "Product list exported successfully to:\n" + file.getAbsolutePath());
+            } catch (IOException e) {
+                e.printStackTrace();
+                showErrorAlert("Export Failed", "Could not export product list: " + e.getMessage());
+            }
+        }
+    }
+
+    // Helper to escape CSV special characters (quotes and commas)
+    private String escapeCsv(Object value) {
+        if (value == null) {
+            return "";
+        }
+        String stringValue = value.toString();
+        // Replace quotes with double quotes, and if it contains comma or quote, enclose in quotes
+        if (stringValue.contains("\"") || stringValue.contains(",") || stringValue.contains("\n") || stringValue.contains("\r")) {
+            return "\"" + stringValue.replace("\"", "\"\"") + "\"";
+        }
+        return stringValue;
     }
 }

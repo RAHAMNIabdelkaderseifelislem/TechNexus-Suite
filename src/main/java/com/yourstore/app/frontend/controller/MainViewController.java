@@ -171,7 +171,19 @@ public class MainViewController {
 
     @FXML
     private void handleNewSaleInMain() {
-        showInfoAlert("New Sale", "This will open the New Sale screen (to be implemented).");
+        try {
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/fxml/NewSaleView.fxml")));
+            loader.setControllerFactory(springContext::getBean);
+            Parent newSaleRoot = loader.load();
+            if (mainBorderPane != null) {
+                mainBorderPane.setCenter(newSaleRoot);
+            } else {
+                openInNewWindow(newSaleRoot, "New Sale");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            showErrorAlert("Error Loading View", "Could not load the new sale view: " + e.getMessage());
+        }
     }
     
     @FXML

@@ -87,8 +87,7 @@ public class SaleClientService {
                  return Collections.emptyList(); // Return an empty list of SaleDto on failure
             });
     }
-    
-    // TODO: Add createSale method later for "New Sale" feature
+
 
     private void handleHttpError(HttpResponse<?> response, String action) {
         // (Same as in ProductClientService, or move to a shared utility)
@@ -123,5 +122,43 @@ public class SaleClientService {
             alert.initOwner(stageManager.getPrimaryStage());
         }
         alert.showAndWait();
+    }
+
+    public CompletableFuture<SaleDto> createSale(SaleDto saleDto) {
+        try {
+            String requestBody = objectMapper.writeValueAsString(saleDto);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(getBaseUrl())) // POST to /api/v1/sales
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .build();
+
+            return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(httpResponse -> {
+                    if (httpResponse.statusCode() == 201) { // CREATED
+                        try {
+                            return objectMapper.readValue(httpResponse.body(), SaleDto.class);
+                        } catch (IOException e) {
+                            throw new RuntimeException("Failed to parse created sale response: " + e.getMessage(), e);
+                        }
+                    } else {
+                        handleHttpError(httpResponse, "create sale"); // Uses the existing error handler
+                        // handleHttpError throws, so this part won't be reached.
+                        // If it didn't throw, you'd need to return null or throw here.
+                        throw new RuntimeException("Sale creation failed with status: " + httpResponse.statusCode());
+                    }
+                }).exceptionally(ex -> {
+                    System.err.println("Exception during createSale request: " + ex.getMessage());
+                    // The alert might be shown by handleHttpError if it's an HTTP error that gets converted.
+                    // If it's a network/parsing error before handleHttpError, show it here.
+                    if (!(ex.getCause() instanceof RuntimeException && ex.getCause().getMessage().startsWith("Failed to create sale. Status:"))) {
+                        Platform.runLater(() -> showErrorAlert("Sale Creation Error", ex.getMessage()));
+                    }
+                    throw new RuntimeException("Could not complete sale creation.", ex); // Rethrow to be caught by controller
+                });
+        } catch (IOException e) { // Catch JSON serialization error for the request
+            Platform.runLater(() -> showErrorAlert("Client Error", "Failed to prepare sale data for sending: " + e.getMessage()));
+            return CompletableFuture.failedFuture(new RuntimeException("Failed to serialize sale DTO for creation", e));
+        }
     }
 }
