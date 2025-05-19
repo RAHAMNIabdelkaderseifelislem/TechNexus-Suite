@@ -1,7 +1,7 @@
 package com.yourstore.app.frontend.controller;
 
 import com.yourstore.app.backend.model.dto.RepairJobDto;
-import com.yourstore.app.backend.model.enums.RepairStatus; // For status column
+import com.yourstore.app.backend.model.enums.RepairStatus;
 import com.yourstore.app.frontend.service.RepairClientService;
 import com.yourstore.app.frontend.util.StageManager;
 import javafx.application.Platform;
@@ -13,6 +13,8 @@ import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
@@ -20,38 +22,47 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle; // For LocalDate formatting
+import java.time.format.FormatStyle;
 
 @Component
 public class RepairsListViewController {
 
+    private static final Logger logger = LoggerFactory.getLogger(RepairsListViewController.class);
+
+    // --- FXML Injected Fields ---
     @FXML private TableView<RepairJobDto> repairsTableView;
     @FXML private TableColumn<RepairJobDto, Long> repairIdColumn;
     @FXML private TableColumn<RepairJobDto, String> customerNameColumn;
     @FXML private TableColumn<RepairJobDto, String> itemTypeColumn;
     @FXML private TableColumn<RepairJobDto, String> itemBrandModelColumn;
-    @FXML private TableColumn<RepairJobDto, String> reportedIssueColumn;
+    // @FXML private TableColumn<RepairJobDto, String> reportedIssueColumn; // Display in edit view
     @FXML private TableColumn<RepairJobDto, RepairStatus> statusColumn;
     @FXML private TableColumn<RepairJobDto, String> assignedToColumn;
     @FXML private TableColumn<RepairJobDto, LocalDateTime> dateReceivedColumn;
     @FXML private TableColumn<RepairJobDto, LocalDate> estCompletionColumn;
 
+    @FXML private TextField searchRepairField;
     @FXML private Button newRepairButton;
     @FXML private Button editRepairButton;
     @FXML private Button refreshButton;
-    @FXML private ProgressIndicator progressIndicator;
-    @FXML private Label statusLabel;
-    @FXML private TextField searchRepairField;
     @FXML private Button homeButton;
 
+    @FXML private Label statusLabel;
+    @FXML private ProgressIndicator progressIndicator;
+
+    // --- Services and Utilities ---
     private final RepairClientService repairClientService;
     private final StageManager stageManager;
     private final ConfigurableApplicationContext springContext;
-    private final ObservableList<RepairJobDto> repairJobsList = FXCollections.observableArrayList();
+
+    // --- Data Lists ---
     private final ObservableList<RepairJobDto> repairJobsMasterList = FXCollections.observableArrayList();
     private FilteredList<RepairJobDto> filteredRepairJobsData;
+
+    // --- Formatters ---
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM);
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM); // For LocalDate
+    private final DateTimeFormatter searchDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 
     @Autowired
@@ -61,9 +72,10 @@ public class RepairsListViewController {
         this.springContext = springContext;
     }
 
-     @FXML
+    @FXML
     public void initialize() {
-        setupTableColumns();
+        logger.info("Initializing RepairsListViewController.");
+        showProgress(false, "Ready.");
 
         filteredRepairJobsData = new FilteredList<>(repairJobsMasterList, p -> true);
 
@@ -77,9 +89,13 @@ public class RepairsListViewController {
                 if (job.getItemType() != null && job.getItemType().toLowerCase().contains(lowerCaseFilter)) return true;
                 if (job.getItemBrand() != null && job.getItemBrand().toLowerCase().contains(lowerCaseFilter)) return true;
                 if (job.getItemModel() != null && job.getItemModel().toLowerCase().contains(lowerCaseFilter)) return true;
-                if (job.getReportedIssue() != null && job.getReportedIssue().toLowerCase().contains(lowerCaseFilter)) return true;
-                if (job.getStatus() != null && job.getStatus().toString().toLowerCase().contains(lowerCaseFilter)) return true;
+                if (job.getStatus() != null && job.getStatus().getDisplayName().toLowerCase().contains(lowerCaseFilter)) return true; // Search by display name
                 if (job.getAssignedToUsername() != null && job.getAssignedToUsername().toLowerCase().contains(lowerCaseFilter)) return true;
+                if (job.getDateReceived() != null) {
+                     if (dateTimeFormatter.format(job.getDateReceived()).toLowerCase().contains(lowerCaseFilter)) return true;
+                     if (searchDateFormatter.format(job.getDateReceived()).toLowerCase().contains(lowerCaseFilter)) return true;
+                }
+                if (job.getEstimatedCompletionDate() != null && dateFormatter.format(job.getEstimatedCompletionDate()).toLowerCase().contains(lowerCaseFilter)) return true;
                 
                 return false;
             });
@@ -88,14 +104,24 @@ public class RepairsListViewController {
         SortedList<RepairJobDto> sortedData = new SortedList<>(filteredRepairJobsData);
         sortedData.comparatorProperty().bind(repairsTableView.comparatorProperty());
         repairsTableView.setItems(sortedData);
+
+        setupTableColumns();
         
         repairsTableView.getSelectionModel().selectedItemProperty().addListener(
             (obs, oldSelection, newSelection) -> editRepairButton.setDisable(newSelection == null)
         );
+        // Make rows double-clickable to edit
+        repairsTableView.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2 && repairsTableView.getSelectionModel().getSelectedItem() != null) {
+                handleEditRepairJob();
+            }
+        });
+
         loadRepairJobs();
     }
 
     private void setupTableColumns() {
+        logger.debug("Setting up repairs table columns.");
         repairIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         customerNameColumn.setCellValueFactory(new PropertyValueFactory<>("customerName"));
         itemTypeColumn.setCellValueFactory(new PropertyValueFactory<>("itemType"));
@@ -105,8 +131,8 @@ public class RepairsListViewController {
             String model = job.getItemModel() != null ? job.getItemModel() : "";
             return new SimpleStringProperty(brand + (!brand.isEmpty() && !model.isEmpty() ? " / " : "") + model);
         });
-        reportedIssueColumn.setCellValueFactory(new PropertyValueFactory<>("reportedIssue"));
-        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        // reportedIssueColumn.setCellValueFactory(new PropertyValueFactory<>("reportedIssue")); // Usually too long for list
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status")); // Enum's toString() will be used (displayName)
         assignedToColumn.setCellValueFactory(new PropertyValueFactory<>("assignedToUsername"));
 
         dateReceivedColumn.setCellValueFactory(new PropertyValueFactory<>("dateReceived"));
@@ -125,11 +151,12 @@ public class RepairsListViewController {
                 setText(empty || item == null ? null : dateFormatter.format(item));
             }
         });
-        repairsTableView.setItems(repairJobsList);
     }
 
     @FXML
     private void handleRefresh() {
+        logger.info("Refresh repair jobs button clicked.");
+        searchRepairField.clear();
         loadRepairJobs();
     }
 
@@ -137,14 +164,16 @@ public class RepairsListViewController {
         showProgress(true, "Loading repair jobs...");
         repairClientService.getAllRepairJobs()
             .thenAcceptAsync(jobs -> Platform.runLater(() -> {
-                repairJobsMasterList.setAll(jobs); // Update master list
+                repairJobsMasterList.setAll(jobs);
                 showProgress(false, "Repair jobs loaded. Found " + repairJobsMasterList.size() + " records.");
+                logger.info("Loaded {} repair jobs.", repairJobsMasterList.size());
             }))
             .exceptionally(ex -> {
                 Platform.runLater(() -> {
-                    Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-                    showProgress(false, "Error loading repair jobs: " + cause.getMessage());
-                    // Alert is handled by client service
+                    repairJobsMasterList.clear();
+                    showProgress(false, "Error loading repair jobs.");
+                    logger.error("Error loading repair jobs: {}", ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage(), ex);
+                    // Alert is handled by RepairClientService
                 });
                 return null;
             });
@@ -152,53 +181,49 @@ public class RepairsListViewController {
     
     @FXML
     private void handleNewRepairJob() {
-        openRepairJobEditView(null);
+        logger.info("New Repair Job button clicked.");
+        openRepairJobEditView(null, "Log New Repair Job");
     }
 
     @FXML
     private void handleEditRepairJob() {
         RepairJobDto selectedJob = repairsTableView.getSelectionModel().getSelectedItem();
         if (selectedJob != null) {
-            openRepairJobEditView(selectedJob);
+            logger.info("Edit Repair Job button clicked for ID: {}.", selectedJob.getId());
+            openRepairJobEditView(selectedJob, "Edit Repair Job - ID: " + selectedJob.getId());
         } else {
-            stageManager.showInfoAlert("No Selection", "Please select a repair job to view/edit.");
+            stageManager.showInfoAlert("No Selection", "Please select a repair job to view or edit.");
+        }
+    }
+
+    private void openRepairJobEditView(RepairJobDto jobToEdit, String viewTitle) {
+        try {
+            // Pass data to the controller before loading its FXML
+            RepairJobEditViewController.setJobToEdit(jobToEdit); 
+            
+            MainViewController mainViewController = springContext.getBean(MainViewController.class);
+            mainViewController.loadCenterView("/fxml/RepairJobEditView.fxml");
+            // The title of the view itself is set within RepairJobEditViewController.initialize()
+        } catch (Exception e) {
+            logger.error("Error opening repair job edit view for job ID {}: {}", (jobToEdit != null ? jobToEdit.getId() : "new"), e.getMessage(), e);
+            stageManager.showErrorAlert("Navigation Error", "Could not open the repair job form.");
         }
     }
 
     @FXML
     private void handleGoHome() {
+        logger.debug("Go Home button clicked from Repairs List.");
         try {
             MainViewController mainViewController = springContext.getBean(MainViewController.class);
-            mainViewController.showHomeTiles(); // Call the public method
+            mainViewController.handleShowDashboard();
         } catch (Exception e) {
-            System.err.println("Error navigating to home: " + e.getMessage());
-            e.printStackTrace();
-            // stageManager.showErrorAlert("Navigation Error", "Could not return to the main dashboard.");
-            // Fallback to reloading main view if mainViewController cannot be obtained or fails
-             stageManager.showMainView();
-        }
-    }
-
-    private void openRepairJobEditView(RepairJobDto jobToEdit) {
-        // This is where we need access to the RepairJobEditViewController.
-        // We can load it into a new dialog or a main content area.
-        // For consistency, let's load it into the main content area via MainViewController.
-        MainViewController mainViewController = springContext.getBean(MainViewController.class);
-        if (mainViewController != null) {
-            // We need a way to pass the jobToEdit to the RepairJobEditViewController
-            // One way is to have a static field or a method in the target controller, then load.
-            // Or more Spring-like, use a shared context/bean if it were a very complex state.
-            // For now, a simple "setter" on the controller after loading it is feasible.
-            
-            RepairJobEditViewController.setJobToEdit(jobToEdit); // Static setter for simplicity here
-            mainViewController.loadCenterView("/fxml/RepairJobEditView.fxml");
-        } else {
-            stageManager.showErrorAlert("Navigation Error", "Cannot access MainViewController to open repair edit view.");
+            logger.error("Error navigating to home (dashboard) from Repairs List: {}", e.getMessage(), e);
+            stageManager.showErrorAlert("Navigation Error", "Could not return to the main dashboard.");
         }
     }
 
     private void showProgress(boolean show, String message) {
-        progressIndicator.setVisible(show);
-        statusLabel.setText(message != null ? message : "");
+        if (progressIndicator != null) progressIndicator.setVisible(show);
+        if (statusLabel != null) statusLabel.setText(message != null ? message : "");
     }
 }

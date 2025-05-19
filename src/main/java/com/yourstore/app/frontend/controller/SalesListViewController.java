@@ -3,76 +3,78 @@ package com.yourstore.app.frontend.controller;
 import com.yourstore.app.backend.model.dto.SaleDto;
 import com.yourstore.app.frontend.service.SaleClientService;
 import com.yourstore.app.frontend.util.StageManager;
-
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
-import javafx.scene.Parent;    // For loaded root
-import org.springframework.context.ConfigurableApplicationContext; // To get beans for controller factory
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.nio.file.Path; // For Path
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+// IOException removed as exportAllSalesToCsv in client service handles file writing part, this controller just gets the path
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Component
 public class SalesListViewController {
 
+    private static final Logger logger = LoggerFactory.getLogger(SalesListViewController.class);
+
+    // --- FXML Injected Fields ---
     @FXML private TableView<SaleDto> salesTableView;
     @FXML private TableColumn<SaleDto, Long> saleIdColumn;
     @FXML private TableColumn<SaleDto, String> customerNameColumn;
     @FXML private TableColumn<SaleDto, BigDecimal> totalAmountColumn;
     @FXML private TableColumn<SaleDto, LocalDateTime> saleDateColumn;
     @FXML private TableColumn<SaleDto, String> cashierColumn;
-    @FXML private TableColumn<SaleDto, String> itemsColumn; // To display item count or summary
+    @FXML private TableColumn<SaleDto, String> itemsCountColumn;
+    @FXML private TableColumn<SaleDto, LocalDateTime> createdAtColumn; // Optional
+
     @FXML private TextField searchSaleField;
-
-    @FXML private Button exportButton;
-    private final StageManager stageManager;
-
-
+    @FXML private Button newSaleButton;
     @FXML private Button refreshButton;
-    @FXML private ProgressIndicator progressIndicator;
-    @FXML private Label statusLabel;
+    @FXML private Button exportButton;
     @FXML private Button homeButton;
 
+    @FXML private Label statusLabel;
+    @FXML private ProgressIndicator progressIndicator;
+
+    // --- Services and Utilities ---
     private final SaleClientService saleClientService;
-    private final ObservableList<SaleDto> salesList = FXCollections.observableArrayList();
+    private final StageManager stageManager;
+    private final ConfigurableApplicationContext springContext;
+
+    // --- Data Lists ---
     private final ObservableList<SaleDto> salesMasterList = FXCollections.observableArrayList();
     private FilteredList<SaleDto> filteredSalesData;
+
+    // --- Formatters ---
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final DateTimeFormatter searchDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    private final ConfigurableApplicationContext springContext; // To get controller beans
 
-    // Updated Constructor
     @Autowired
     public SalesListViewController(SaleClientService saleClientService, StageManager stageManager, ConfigurableApplicationContext springContext) {
         this.saleClientService = saleClientService;
         this.stageManager = stageManager;
-        this.springContext = springContext; // Initialize
+        this.springContext = springContext;
     }
-
 
     @FXML
     public void initialize() {
-        setupTableColumns();
+        logger.info("Initializing SalesListViewController.");
+        showProgress(false, "Ready.");
 
         filteredSalesData = new FilteredList<>(salesMasterList, p -> true);
 
@@ -84,10 +86,11 @@ public class SalesListViewController {
                 if (String.valueOf(sale.getId()).contains(lowerCaseFilter)) return true;
                 if (sale.getCustomerName() != null && sale.getCustomerName().toLowerCase().contains(lowerCaseFilter)) return true;
                 if (sale.getUsername() != null && sale.getUsername().toLowerCase().contains(lowerCaseFilter)) return true;
-                if (sale.getSaleDate() != null && dateTimeFormatter.format(sale.getSaleDate()).toLowerCase().contains(lowerCaseFilter)) return true;
-                // Add more fields to search if needed, e.g., total amount (convert to string)
                 if (sale.getTotalAmount() != null && sale.getTotalAmount().toPlainString().contains(lowerCaseFilter)) return true;
-                
+                if (sale.getSaleDate() != null) {
+                    if (dateTimeFormatter.format(sale.getSaleDate()).toLowerCase().contains(lowerCaseFilter)) return true;
+                    if (searchDateFormatter.format(sale.getSaleDate()).toLowerCase().contains(lowerCaseFilter)) return true; // Search by date part only
+                }
                 return false;
             });
         });
@@ -96,14 +99,18 @@ public class SalesListViewController {
         sortedData.comparatorProperty().bind(salesTableView.comparatorProperty());
         salesTableView.setItems(sortedData);
 
+        setupTableColumns();
         loadSales();
     }
 
     private void setupTableColumns() {
+        logger.debug("Setting up sales table columns.");
         saleIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         customerNameColumn.setCellValueFactory(new PropertyValueFactory<>("customerName"));
         totalAmountColumn.setCellValueFactory(new PropertyValueFactory<>("totalAmount"));
         cashierColumn.setCellValueFactory(new PropertyValueFactory<>("username")); // From SaleDto.username
+        createdAtColumn.setCellValueFactory(new PropertyValueFactory<>("createdAt"));
+
 
         saleDateColumn.setCellValueFactory(new PropertyValueFactory<>("saleDate"));
         saleDateColumn.setCellFactory(column -> new TableCell<>() {
@@ -113,18 +120,24 @@ public class SalesListViewController {
                 setText((empty || item == null) ? null : dateTimeFormatter.format(item));
             }
         });
-        
-        itemsColumn.setCellValueFactory(cellData -> {
-            int count = cellData.getValue().getItems() != null ? cellData.getValue().getItems().size() : 0;
-            return new javafx.beans.property.SimpleStringProperty(count + " items");
+        createdAtColumn.setCellFactory(column -> new TableCell<>() { // Formatter for createdAt if shown
+            @Override
+            protected void updateItem(LocalDateTime item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? null : dateTimeFormatter.format(item));
+            }
         });
-
-
-        salesTableView.setItems(salesList);
+        
+        itemsCountColumn.setCellValueFactory(cellData -> {
+            int count = cellData.getValue().getItems() != null ? cellData.getValue().getItems().size() : 0;
+            return new SimpleStringProperty(String.valueOf(count));
+        });
     }
 
     @FXML
     private void handleRefreshSales() {
+        logger.info("Refresh sales button clicked.");
+        searchSaleField.clear();
         loadSales();
     }
 
@@ -132,80 +145,42 @@ public class SalesListViewController {
         showProgress(true, "Loading sales records...");
         saleClientService.getAllSales()
             .thenAcceptAsync(sales -> Platform.runLater(() -> {
-                salesMasterList.setAll(sales); // Update master list
+                salesMasterList.setAll(sales);
                 showProgress(false, "Sales loaded. Found " + salesMasterList.size() + " records.");
+                logger.info("Loaded {} sales into master list.", salesMasterList.size());
             }))
             .exceptionally(ex -> {
                 Platform.runLater(() -> {
-                    System.err.println("Error loading sales: " + ex.getMessage());
+                    salesMasterList.clear();
+                    showProgress(false, "Error loading sales.");
                     Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-                    showProgress(false, "Error loading sales: " + cause.getMessage());
-                    // Error alert is handled by SaleClientService's handleHttpError or exceptionally block
+                    // Alert is handled by SaleClientService's handleHttpError or exceptionally block
+                    logger.error("Error loading sales: {}", cause.getMessage(), cause);
                 });
                 return null;
             });
     }
 
-    private void showProgress(boolean show, String message) {
-        progressIndicator.setVisible(show);
-        statusLabel.setText(message != null ? message : "");
-    }
-
     @FXML
     private void handleNewSale() {
+        logger.info("New Sale button clicked from Sales List.");
         try {
-            // Use StageManager to show the NewSaleView, similar to how MainView is shown after login
-            // This assumes NewSaleView will replace the current content of the primary stage
-            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/fxml/NewSaleView.fxml")));
-            loader.setControllerFactory(springContext::getBean); // Crucial for Spring DI in NewSaleViewController
-            Parent newSaleRoot = loader.load();
-
-            // If SalesListView is in the center of MainView's BorderPane, we need access to that BorderPane.
-            // For simplicity now, let's make NewSaleView take over the scene like other main views.
-            // This requires StageManager to be able to set scene on primary stage.
-            // If MainView is still the root, StageManager needs to be able to change its center.
-            // Let's assume StageManager's showView can handle loading into the primary stage's scene.
-            // Or, more directly, we can get the mainBorderPane from MainViewController if needed.
-
-            // Option A: Use StageManager to replace the whole scene (like login -> main)
-            // stageManager.showView("/fxml/NewSaleView.fxml", "Create New Sale");
-            // This assumes StageManager's showView method sets the scene on primaryStage.
-
-            // Option B: If SalesListView is inside MainView's BorderPane, and we want NewSaleView
-            // to also be in the center of that SAME BorderPane. This is more complex from here.
-            // The easiest is if MainViewController exposes a method to set its center.
-            // Or, if SalesListView is always loaded into MainView's center,
-            // its root's parent might be the BorderPane.
-
-            // For now, let's use the main instance of MainViewController if available
-            // to change its center content. This is a common pattern for sub-view navigation.
             MainViewController mainViewController = springContext.getBean(MainViewController.class);
-            if (mainViewController != null) {
-                mainViewController.loadCenterView("/fxml/NewSaleView.fxml");
-            } else {
-                // Fallback: if MainViewController isn't easily accessible, use StageManager to switch scenes
-                System.err.println("MainViewController not found, switching scene via StageManager for New Sale.");
-                stageManager.showView("/fxml/NewSaleView.fxml", "Create New Sale");
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            stageManager.showErrorAlert("Error Loading View", "Could not load the New Sale screen: " + e.getMessage());
+            mainViewController.loadCenterView("/fxml/NewSaleView.fxml");
+        } catch (Exception e) {
+            logger.error("Error navigating to New Sale view: {}", e.getMessage(), e);
+            stageManager.showErrorAlert("Navigation Error", "Could not open the New Sale screen.");
         }
     }
 
     @FXML
-    private void handleExportSales() { // This method was previously a placeholder
-        if (salesList.isEmpty() && false) { // Keep the button active even if list is empty, backend provides all data
-            stageManager.showInfoAlert("No Data", "There are no sales records currently displayed to export.");
-            // Or, allow export of all data regardless of current view:
-            // statusLabel.setText("Preparing to export all sales data...");
-        }
-
+    private void handleExportSales() {
+        logger.info("Export sales to CSV button clicked.");
+        // The client service method now handles file download and returns Path
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save All Sales Data as CSV");
         fileChooser.setInitialFileName("all_sales_export_" + System.currentTimeMillis() + ".csv");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files (*.csv)", "*.csv"));
         
         File file = fileChooser.showSaveDialog(stageManager.getPrimaryStage());
 
@@ -216,45 +191,37 @@ public class SalesListViewController {
             saleClientService.exportAllSalesToCsv(targetPath)
                 .thenAcceptAsync(downloadedPath -> Platform.runLater(() -> {
                     showProgress(false, "Sales data exported successfully.");
-                    stageManager.showInfoAlert("Export Successful", "All sales data exported successfully to:\n" + downloadedPath.toString());
+                    stageManager.showInfoAlert("Export Successful", "All sales data exported to:\n" + downloadedPath.toString());
+                    logger.info("Sales data exported to CSV: {}", downloadedPath.toString());
                 }))
                 .exceptionally(ex -> {
                     Platform.runLater(() -> {
                         showProgress(false, "Sales data export failed.");
                         Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
                         stageManager.showErrorAlert("Export Failed", "Could not export sales data: " + cause.getMessage());
+                        logger.error("Failed to export sales data: {}", cause.getMessage(), cause);
                     });
                     return null;
                 });
         } else {
-            statusLabel.setText("Sales data export cancelled.");
+            showProgress(false, "CSV Export cancelled.");
         }
-    }
-
-    // Helper to escape CSV special characters (quotes and commas)
-    private String escapeCsv(Object value) {
-        if (value == null) {
-            return "";
-        }
-        String stringValue = value.toString();
-        if (stringValue.contains("\"") || stringValue.contains(",") || stringValue.contains("\n") || stringValue.contains("\r")) {
-            return "\"" + stringValue.replace("\"", "\"\"") + "\"";
-        }
-        return stringValue;
     }
 
     @FXML
     private void handleGoHome() {
+        logger.debug("Go Home button clicked from Sales List.");
         try {
             MainViewController mainViewController = springContext.getBean(MainViewController.class);
-            mainViewController.showHomeTiles(); // Call the public method
+            mainViewController.handleShowDashboard(); // Navigate to Dashboard which is home
         } catch (Exception e) {
-            System.err.println("Error navigating to home: " + e.getMessage());
-            e.printStackTrace();
-            // stageManager.showErrorAlert("Navigation Error", "Could not return to the main dashboard.");
-            // Fallback to reloading main view if mainViewController cannot be obtained or fails
-             stageManager.showMainView();
+            logger.error("Error navigating to home (dashboard) from Sales List: {}", e.getMessage(), e);
+            stageManager.showErrorAlert("Navigation Error", "Could not return to the main dashboard.");
         }
     }
-
+    
+    private void showProgress(boolean show, String message) {
+        if (progressIndicator != null) progressIndicator.setVisible(show);
+        if (statusLabel != null) statusLabel.setText(message != null ? message : "");
+    }
 }

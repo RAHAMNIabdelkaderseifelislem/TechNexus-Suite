@@ -1,83 +1,114 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.yourstore.app.backend.model.enums.RepairStatus?>
+<?import com.yourstore.app.backend.model.enums.RepairStatus?> <!-- Not strictly needed if controller populates items -->
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.yourstore.app.frontend.controller.RepairJobEditViewController"
-            prefHeight="750.0" prefWidth="700.0">
-    <padding><Insets topRightBottomLeft="15.0"/></padding>
+            styleClass="main-content-area">
+    <padding><Insets topRightBottomLeft="10.0"/></padding>
+
     <top>
-        <Label fx:id="viewTitleLabel" text="Log New Repair Job" BorderPane.alignment="CENTER">
-            <font><Font name="System Bold" size="18.0"/></font>
-            <BorderPane.margin><Insets bottom="15.0"/></BorderPane.margin>
-        </Label>
-    </top>
-    <center>
-        <ScrollPane fitToWidth="true" fitToHeight="true">
-        <VBox spacing="12.0">
-            <GridPane hgap="10" vgap="8">
-                <columnConstraints>
-                    <ColumnConstraints halignment="RIGHT" minWidth="130.0" prefWidth="130.0"/>
-                    <ColumnConstraints hgrow="ALWAYS"/>
-                </columnConstraints>
-
-                <Label text="Customer Name:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                <TextField fx:id="customerNameField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                <Label text="Customer Phone:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                <TextField fx:id="customerPhoneField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-                <Label text="Customer Email:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                <TextField fx:id="customerEmailField" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-
-                <Label text="Item Type:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                <TextField fx:id="itemTypeField" GridPane.rowIndex="3" GridPane.columnIndex="1" promptText="e.g., Laptop, Desktop, Phone"/>
-                <Label text="Item Brand:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-                <TextField fx:id="itemBrandField" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
-                <Label text="Item Model:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
-                <TextField fx:id="itemModelField" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
-                <Label text="Serial Number:" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
-                <TextField fx:id="itemSerialNumberField" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
-            </GridPane>
-
-            <Label text="Reported Issue:"/>
-            <TextArea fx:id="reportedIssueArea" prefHeight="100.0" wrapText="true"/>
-
-            <Label text="Technician Notes:"/>
-            <TextArea fx:id="technicianNotesArea" prefHeight="80.0" wrapText="true"/>
-
-            <GridPane hgap="10" vgap="8">
-                 <columnConstraints>
-                    <ColumnConstraints halignment="RIGHT" minWidth="130.0" prefWidth="130.0"/>
-                    <ColumnConstraints hgrow="ALWAYS"/>
-                </columnConstraints>
-                <Label text="Status:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                <ComboBox fx:id="statusComboBox" GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="2000.0"/>
-                
-                <Label text="Assigned To:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                <ComboBox fx:id="assignedToUserComboBox" GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="2000.0" promptText="Select Technician"/>
-
-                <Label text="Estimated Cost:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                <TextField fx:id="estimatedCostField" GridPane.rowIndex="2" GridPane.columnIndex="1" promptText="0.00"/>
-                
-                <Label text="Actual Cost:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                <TextField fx:id="actualCostField" GridPane.rowIndex="3" GridPane.columnIndex="1" promptText="0.00"/>
-
-                <Label text="Est. Completion:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-                <DatePicker fx:id="estimatedCompletionDatePicker" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
-            </GridPane>
-            <Label fx:id="errorMessageLabel" style="-fx-text-fill: red;" wrapText="true"/>
-            <Label fx:id="statusMessageLabel" style="-fx-text-fill: green;" wrapText="true"/>
+        <VBox spacing="10.0" alignment="CENTER_LEFT">
+             <HBox alignment="CENTER_LEFT" spacing="10">
+                 <Button fx:id="backToListButton" text="Back to Repairs List" onAction="#handleCancel" styleClass="button-secondary"/>
+                 <Label fx:id="viewTitleLabel" text="Repair Job Details" styleClass="h2"/>
+            </HBox>
+            <padding><Insets bottom="15.0"/></padding>
         </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-padding: 5px;">
+            <VBox spacing="15.0" style="-fx-background-color: -fx-white; -fx-padding: 20px; -fx-border-radius: 6px; -fx-background-radius: 6px; -fx-effect: -fx-shadow-subtle;">
+                <Label text="Customer Information" styleClass="h3"/>
+                <GridPane hgap="10" vgap="10">
+                    <columnConstraints>
+                        <ColumnConstraints halignment="RIGHT" minWidth="140.0" prefWidth="140.0"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+                    <Label text="Customer Name:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <TextField fx:id="customerNameField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                    <Label text="Phone:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="customerPhoneField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                    <Label text="Email:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <TextField fx:id="customerEmailField" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                </GridPane>
+
+                <Separator/>
+                <Label text="Item Details" styleClass="h3"/>
+                <GridPane hgap="10" vgap="10">
+                     <columnConstraints>
+                        <ColumnConstraints halignment="RIGHT" minWidth="140.0" prefWidth="140.0"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+                    <Label text="Item Type:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <TextField fx:id="itemTypeField" GridPane.rowIndex="0" GridPane.columnIndex="1" promptText="e.g., Laptop, Desktop, Phone"/>
+                    <Label text="Brand:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="itemBrandField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                    <Label text="Model:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <TextField fx:id="itemModelField" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                    <Label text="Serial Number:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <TextField fx:id="itemSerialNumberField" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                </GridPane>
+
+                <Separator/>
+                <Label text="Issue And Notes" styleClass="h3"/>
+                <Label text="Reported Issue (Customer):"/>
+                <TextArea fx:id="reportedIssueArea" prefHeight="100.0" wrapText="true"/>
+                <Label text="Technician Notes:"/>
+                <TextArea fx:id="technicianNotesArea" prefHeight="100.0" wrapText="true"/>
+
+                <Separator/>
+                <Label text="Repair Management" styleClass="h3"/>
+                 <GridPane hgap="10" vgap="10">
+                     <columnConstraints>
+                        <ColumnConstraints halignment="RIGHT" minWidth="140.0" prefWidth="140.0"/>
+                        <ColumnConstraints hgrow="ALWAYS" prefWidth="200.0"/>
+                        <ColumnConstraints halignment="RIGHT" minWidth="120.0" prefWidth="120.0"/>
+                        <ColumnConstraints hgrow="ALWAYS" prefWidth="200.0"/>
+                    </columnConstraints>
+                    <Label text="Current Status:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="statusComboBox" GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="2000.0"/>
+                    
+                    <Label text="Assigned To:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="assignedToUserComboBox" GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="2000.0" promptText="Select Technician"/>
+
+                    <Label text="Estimated Cost:" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                    <TextField fx:id="estimatedCostField" GridPane.rowIndex="0" GridPane.columnIndex="3" promptText="0.00"/>
+                    
+                    <Label text="Actual Cost:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                    <TextField fx:id="actualCostField" GridPane.rowIndex="1" GridPane.columnIndex="3" promptText="0.00"/>
+
+                    <Label text="Est. Completion Date:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <DatePicker fx:id="estimatedCompletionDatePicker" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                </GridPane>
+                
+                <VBox spacing="5" alignment="CENTER_LEFT">
+                    <Label fx:id="errorMessageLabel" style="-fx-text-fill: -fx-ruby-error;" wrapText="true" managed="false" visible="false"/>
+                    <Label fx:id="statusMessageLabel" style="-fx-text-fill: -fx-teal-success;" wrapText="true" managed="false" visible="false"/>
+                </VBox>
+            </VBox>
         </ScrollPane>
     </center>
+
     <bottom>
-        <HBox spacing="10.0" alignment="CENTER_RIGHT" BorderPane.alignment="CENTER">
-            <padding><Insets top="15.0"/></padding>
-            <Button fx:id="saveButton" text="Save Repair Job" onAction="#handleSaveRepairJob" defaultButton="true"/>
-            <Button fx:id="cancelButton" text="Cancel" onAction="#handleCancel" cancelButton="true"/>
+        <HBox spacing="10.0" alignment="CENTER_RIGHT" style="-fx-padding: 15px 10px;">
+            <Button fx:id="saveButton" text="Save Repair Job" onAction="#handleSaveRepairJob" styleClass="button-primary" prefWidth="150" defaultButton="true"/>
+            <Button fx:id="cancelButton" text="Back to List" onAction="#handleCancel" styleClass="button-secondary" prefWidth="120" cancelButton="true"/>
         </HBox>
     </bottom>
 </BorderPane>
