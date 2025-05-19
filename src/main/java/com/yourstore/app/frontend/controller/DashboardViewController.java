@@ -8,6 +8,8 @@ import com.yourstore.app.backend.model.dto.SaleDto;
 import com.yourstore.app.backend.model.enums.RepairStatus;
 import com.yourstore.app.frontend.util.StageManager;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -21,6 +23,10 @@ import javafx.scene.control.Button; // Added for refreshButton
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -62,6 +68,12 @@ public class DashboardViewController {
     @FXML private VBox productsInStockCard;
     @FXML private VBox pendingRepairsCard;
     @FXML private VBox lowStockItemsCard;
+
+    @FXML private TableView<RepairJobDto> latestRepairsTableView;
+    @FXML private TableColumn<RepairJobDto, Long> latestRepairIdColumn;
+    @FXML private TableColumn<RepairJobDto, String> latestRepairCustomerColumn;
+    @FXML private TableColumn<RepairJobDto, String> latestRepairItemColumn;
+    @FXML private TableColumn<RepairJobDto, RepairStatus> latestRepairStatusColumn; // Store RepairStatus for logic
 
     // Chart
     @FXML private BarChart<String, Number> weeklySalesChart;
@@ -105,6 +117,7 @@ public class DashboardViewController {
         if (dayAxis != null) dayAxis.setLabel("Day of Week"); // Set axis labels if not set in FXML
         if (salesAmountAxis != null) salesAmountAxis.setLabel("Sales Amount (" + currencyFormatter.getCurrency().getSymbol() + ")");
         
+        setupLatestRepairsTable(); // New setup method
         loadDashboardMetrics();
     }
 
@@ -196,6 +209,60 @@ public class DashboardViewController {
         }
     }
 
+    private void setupLatestRepairsTable() {
+        if (latestRepairsTableView == null) {
+            logger.warn("latestRepairsTableView is null. Cannot setup.");
+            return;
+        }
+        latestRepairIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        latestRepairCustomerColumn.setCellValueFactory(new PropertyValueFactory<>("customerName"));
+
+        latestRepairItemColumn.setCellValueFactory(cellData -> {
+            RepairJobDto job = cellData.getValue();
+            String itemSummary = (job.getItemBrand() != null ? job.getItemBrand() : "") + 
+                                (job.getItemModel() != null ? " " + job.getItemModel() : "") +
+                                (!job.getItemType().isEmpty() && (job.getItemBrand() != null || job.getItemModel() != null) ? " ("+job.getItemType()+")" : job.getItemType());
+            return new SimpleStringProperty(itemSummary.trim());
+        });
+
+        latestRepairStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        latestRepairStatusColumn.setCellFactory(column -> new TableCell<RepairJobDto, RepairStatus>() {
+            private final HBox graphic = new HBox(5); // Spacing between dot and text
+            private final Circle statusDot = new Circle(5);
+            private final Text statusText = new Text();
+            {
+                graphic.setAlignment(Pos.CENTER_LEFT);
+                graphic.getChildren().addAll(statusDot, statusText);
+            }
+
+            @Override
+            protected void updateItem(RepairStatus status, boolean empty) {
+                super.updateItem(status, empty);
+                if (empty || status == null) {
+                    setGraphic(null);
+                } else {
+                    statusDot.setFill(getRepairStatusColor(status)); // Uses existing helper
+                    statusText.setText(status.getDisplayName());
+                    statusText.setStyle("-fx-fill: -fx-dark-gray-text;"); // Ensure text color from CSS
+                    setGraphic(graphic);
+                }
+            }
+        });
+
+        // Double-click to open repair job
+        latestRepairsTableView.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                RepairJobDto selectedJob = latestRepairsTableView.getSelectionModel().getSelectedItem();
+                if (selectedJob != null) {
+                    logger.debug("Double-clicked repair job ID: {}", selectedJob.getId());
+                    RepairJobEditViewController.setJobToEdit(selectedJob);
+                    springContext.getBean(MainViewController.class).loadCenterView("/fxml/RepairJobEditView.fxml");
+                }
+            }
+        });
+        latestRepairsTableView.setPlaceholder(new Label("No recent repair jobs to display."));
+    }
+
     private void populateWeeklySalesChart(Map<String, Object> metrics) {
         if (weeklySalesChart != null && metrics.get("weeklySalesChartData") instanceof Map) {
             @SuppressWarnings("unchecked")
@@ -220,17 +287,22 @@ public class DashboardViewController {
     }
 
     private void populateLatestRepairs(Map<String, Object> metrics) {
-        if (latestRepairsVBox != null && metrics.get("latestRepairJobs") != null) {
-            List<RepairJobDto> repairDtos = objectMapper.convertValue(metrics.get("latestRepairJobs"), new TypeReference<List<RepairJobDto>>() {});
-            latestRepairsVBox.getChildren().clear();
-            if (repairDtos.isEmpty()) {
-                latestRepairsVBox.getChildren().add(new Label("No pending repair jobs to display."));
-            } else {
-                repairDtos.forEach(job -> latestRepairsVBox.getChildren().add(createRepairJobEntryNode(job)));
+        if (latestRepairsTableView != null && metrics.get("latestRepairJobs") != null) {
+            try {
+                List<RepairJobDto> repairDtos = objectMapper.convertValue(
+                    metrics.get("latestRepairJobs"), 
+                    new TypeReference<List<RepairJobDto>>() {}
+                );
+                latestRepairsTableView.setItems(FXCollections.observableArrayList(repairDtos));
+                logger.info("Populated latest repairs table with {} items.", repairDtos.size());
+            } catch (IllegalArgumentException e) { // Catch TypeReference conversion errors
+                logger.error("Error converting latestRepairJobs metric to List<RepairJobDto>: {}", e.getMessage(), e);
+                latestRepairsTableView.setPlaceholder(new Label("Error loading repair data."));
             }
-        } else if (latestRepairsVBox != null) {
-            latestRepairsVBox.getChildren().clear();
-            latestRepairsVBox.getChildren().add(new Label("Repair data unavailable."));
+        } else if (latestRepairsTableView != null) {
+            latestRepairsTableView.getItems().clear();
+            latestRepairsTableView.setPlaceholder(new Label("Repair data currently unavailable."));
+            logger.warn("Latest repair jobs data not found in metrics or TableView is null.");
         }
     }
 

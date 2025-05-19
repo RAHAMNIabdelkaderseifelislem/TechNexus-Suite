@@ -338,3 +338,20 @@
 .progress-indicator .percentage, .progress-indicator .indeterminate-segment {
     -fx-background-color: #2563EB;
 }
+
+.status-dot-cell {
+    -fx-alignment: center-left;
+    -fx-spacing: 5px;
+}
+
+.dashboard-table-view .table-row-cell {
+    -fx-padding: 3px 5px; /* Smaller padding for dashboard tables */
+    -fx-font-size: 12px;  /* Smaller font for dashboard tables */
+}
+
+.dashboard-table-view .column-header-background {
+    -fx-padding: 5px 5px;
+}
+.dashboard-table-view .column-header .label {
+    -fx-font-size: 12px;
+}

@@ -11,6 +11,9 @@
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.text.TextFlow?> <!-- For rich text in lists -->
 <?import javafx.scene.text.Text?>    <!-- For rich text in lists -->
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.shape.Circle?>
 
 <ScrollPane fitToWidth="true" fitToHeight="true" styleClass="main-content-area" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.yourstore.app.frontend.controller.DashboardViewController">
@@ -67,9 +70,15 @@
                 <!-- Latest Repair Jobs -->
                 <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="content-panel" spacing="10">
                     <Label text="Latest Repair Jobs" styleClass="dashboard-section-title"/>
-                    <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
-                         <VBox fx:id="latestRepairsVBox" spacing="8.0" style="-fx-padding: 5px 0px;"/>
-                    </ScrollPane>
+                    <TableView fx:id="latestRepairsTableView" prefHeight="250.0" VBox.vgrow="ALWAYS"> <!-- Adjust prefHeight as needed -->
+                        <columns>
+                            <TableColumn fx:id="latestRepairIdColumn" text="ID" prefWidth="60" styleClass="centered-column"/>
+                            <TableColumn fx:id="latestRepairCustomerColumn" text="Customer" prefWidth="120"/>
+                            <TableColumn fx:id="latestRepairItemColumn" text="Item" prefWidth="150"/>
+                            <TableColumn fx:id="latestRepairStatusColumn" text="Status" prefWidth="120"/>
+                        </columns>
+                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                    </TableView>
                     <Hyperlink text="View All Repairs" onAction="#navigateToViewRepairs" style="-fx-font-size: -fx-font-size-small;"/>
                 </VBox>
 
