@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -21,7 +22,7 @@
                 <!-- Card 1: Today's Sales -->
                 <VBox fx:id="todaysSalesCard" styleClass="dashboard-card" prefWidth="240" minHeight="100">
                     <Label text="TODAY'S SALES" styleClass="metric-title"/>
-                    <Label fx:id="todaysSalesLabel" text="\$0.00" styleClass="metric-value"/>
+                    <Label fx:id="todaysSalesLabel" text="0.00 DA" styleClass="metric-value"/>
                 </VBox>
                 <!-- Card 2: Products in Stock -->
                 <VBox fx:id="productsInStockCard" styleClass="dashboard-card" prefWidth="240" minHeight="100">

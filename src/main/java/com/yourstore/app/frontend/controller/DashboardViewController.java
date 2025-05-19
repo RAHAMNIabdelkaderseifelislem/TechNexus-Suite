@@ -110,7 +110,7 @@ public class DashboardViewController {
                                 todaysSalesLabel.setText(currencyFormatter.format(revenue));
                                 if (revenue > 0) todaysSalesCard.getStyleClass().add("dashboard-card-accent-teal");
                             } else {
-                                todaysSalesLabel.setText(todaysSalesObj != null ? todaysSalesObj.toString() : "$0.00");
+                                todaysSalesLabel.setText(todaysSalesObj != null ? todaysSalesObj.toString() : "0.00 DA");
                             }
                         }
 

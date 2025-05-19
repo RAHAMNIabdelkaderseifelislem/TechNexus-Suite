@@ -73,6 +73,11 @@ public class NewPurchaseViewController {
     @FXML
     public void initialize() {
         logger.info("Initializing NewPurchaseViewController.");
+        // Set up Spinners for quantity and cost price
+        SpinnerValueFactory.IntegerSpinnerValueFactory quantityFactory =  new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 999, 1);
+        quantitySpinner.setValueFactory(quantityFactory);
+        SpinnerValueFactory.DoubleSpinnerValueFactory costPriceFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.01, 99999999.99, 1.00, 0.01);
+        costPriceSpinner.setValueFactory(costPriceFactory);
         setupProductComboBox();
         setupPurchaseItemsTable();
         loadAvailableProducts();

@@ -1,6 +1,7 @@
 package com.yourstore.app.backend.service;
 
 import com.yourstore.app.backend.model.enums.ProductCategory; // Import ProductCategory
+import com.yourstore.app.backend.model.enums.RepairStatus;
 import com.yourstore.app.backend.repository.ProductRepository;
 import com.yourstore.app.backend.repository.RepairJobRepository;
 import com.yourstore.app.backend.repository.SaleRepository;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +39,6 @@ public class DashboardService {
         metrics.put("totalSalesRevenue", totalRevenue != null ? totalRevenue : BigDecimal.ZERO);
 
         List<Object[]> salesByCategoryData = saleRepository.findSalesCountPerCategory();
-        // ... (salesByCategory processing as before) ...
         if (salesByCategoryData != null) {
             metrics.put("salesByCategory", salesByCategoryData.stream()
                 .filter(row -> row[0] instanceof ProductCategory && row[1] instanceof Long)
@@ -49,15 +50,21 @@ public class DashboardService {
             metrics.put("salesByCategory", Collections.emptyMap());
         }
 
-        // New Metrics
         BigDecimal todaysRevenue = saleRepository.findTodaysSalesRevenue();
         metrics.put("todaysSalesRevenue", todaysRevenue != null ? todaysRevenue : BigDecimal.ZERO);
-
         metrics.put("lowStockItemsCount", productRepository.countLowStockItems(LOW_STOCK_THRESHOLD));
         
-        Long pendingRepairs = repairJobRepository.countPendingRepairs(); // From previous commit
+        // Call the corrected repository method for pending repairs
+        List<RepairStatus> excludedStatuses = Arrays.asList(
+                RepairStatus.COMPLETED_PAID,
+                RepairStatus.COMPLETED_UNPAID,
+                RepairStatus.CANCELLED_BY_CUSTOMER,
+                RepairStatus.CANCELLED_BY_STORE,
+                RepairStatus.UNREPAIRABLE
+        );
+        Long pendingRepairs = repairJobRepository.countByStatusNotIn(excludedStatuses);
         metrics.put("pendingRepairsCount", pendingRepairs != null ? pendingRepairs : 0L);
-        
+            
         return metrics;
     }
 }

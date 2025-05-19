@@ -26,31 +26,31 @@
 
 /* --- Root Variables (CSS Custom Properties) --- */
 .root {
-    -fx-primary-blue: #2563EB;      /* Main brand color */
-    -fx-dark-blue-nav: #1E3A8A;    /* Side nav background */
-    -fx-dark-blue-header: #1E40AF; /* Headers, secondary actions */
-    -fx-light-blue-bg: #DBEAFE;   /* Highlights, selected items */
-
-    -fx-teal-success: #0D9488;     /* Success states, positive metrics */
-    -fx-amber-warning: #F59E0B;    /* Warnings, pending states */
-    -fx-ruby-error: #E11D48;       /* Errors, alerts, critical notifications */
-
-    -fx-dark-gray-text: #1F2937;   /* Primary text */
-    -fx-medium-gray-text: #6B7280; /* Secondary text, icons */
-    -fx-light-gray-bg: #F3F4F6;    /* Backgrounds, table alternating rows */
-    -fx-white: #FFFFFF;            /* Component backgrounds, cards */
-    
-    -fx-border-color-light: #E5E7EB;   /* Light borders */
-    -fx-border-color-medium: #D1D5DB;  /* Input field borders */
+    -fx-primary-blue: #2563EB;
+    -fx-dark-blue-nav: #1E3A8A;
+    -fx-dark-blue-header: #1E40AF;
+    -fx-light-blue-bg: #DBEAFE;
+    -fx-teal-success: #0D9488;
+    -fx-amber-warning: #F59E0B;
+    -fx-ruby-error: #E11D48;
+    -fx-dark-gray-text: #1F2937;
+    -fx-medium-gray-text: #6B7280;
+    -fx-light-gray-bg: #F3F4F6;
+    -fx-white: #FFFFFF;
+    -fx-border-color-light: #E5E7EB;
+    -fx-border-color-medium: #D1D5DB;
 
     -fx-font-family-primary: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-family-mono: "Roboto Mono", "Consolas", "Courier New", monospace;
 
-    -fx-font-size-body: 14px;
-    -fx-font-size-small: 12px;
-    -fx-font-size-h1: 24px;
-    -fx-font-size-h2: 20px;
-    -fx-font-size-h3: 18px;
+    /* Font size variables are temporarily removed from use to avoid parsing errors */
+    /*
+    font-size-body-var: 14px;
+    font-size-small-var: 12px;
+    font-size-h1-var: 24px;
+    font-size-h2-var: 20px;
+    font-size-h3-var: 18px;
+    */
 
     -fx-shadow-subtle: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0.1, 0, 1);
     -fx-shadow-medium: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.2, 0, 2);
@@ -58,289 +58,312 @@
 
 /* --- Base & General Styles --- */
 .label {
-    -fx-font-family: -fx-font-family-primary;
-    -fx-text-fill: -fx-dark-gray-text;
-    -fx-font-size: -fx-font-size-body;
+    font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-text-fill: #1F2937;
+    font-size: 14px; /* Direct value */
 }
 
 .text-field, .text-area, .combo-box, .spinner, .date-picker {
-    -fx-font-family: -fx-font-family-primary;
-    -fx-font-size: -fx-font-size-body;
-    -fx-border-color: -fx-border-color-medium;
-    -fx-border-radius: 4px;
-    -fx-background-radius: 4px; /* For consistency */
-    -fx-padding: 6px 10px;
+    font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px; /* Direct value */
+    border-color: #D1D5DB;
+    border-radius: 4px;
+    -fx-background-radius: 4px;
+    padding: 6px 10px;
 }
 .text-field:focused, .text-area:focused, .combo-box:focused, .spinner:focused, .date-picker:focused {
-    -fx-border-color: -fx-primary-blue;
-    -fx-effect: dropshadow(gaussian, derive(-fx-primary-blue, -50%), 5, 0.3, 0, 0); /* Softer focus shadow */
+    border-color: #2563EB;
+    -fx-effect: dropshadow(gaussian, derive(#2563EB, -50%), 5, 0.3, 0, 0);
 }
-.combo-box .list-cell { /* Style items in ComboBox dropdown */
-    -fx-font-family: -fx-font-family-primary;
-    -fx-font-size: -fx-font-size-body;
+.combo-box .list-cell {
+    font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px; /* Direct value */
 }
 .text-area {
     -fx-wrap-text: true;
 }
 
+/* --- TableView Styles --- */
+.table-view {
+    font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px; /* Direct value */
+    border-color: #E5E7EB;
+    background-color: #FFFFFF;
+}
+.table-view .column-header-background {
+    background-color: #F3F4F6;
+    padding: 8px 5px;
+}
+.table-view .column-header .label {
+    font-weight: bold;
+    -fx-text-fill: #1F2937;
+    padding: 0 0 0 5px;
+    font-size: 13px; /* Direct value for header labels */
+}
+.table-view .table-row-cell {
+    border-color: transparent #E5E7EB transparent transparent;
+    border-width: 0 1px 0 0;
+     font-size: 13px; /* Direct value for cell text */
+}
+.table-view .table-row-cell:odd {
+    background-color: #FFFFFF;
+}
+.table-view .table-row-cell:even {
+    background-color: #F3F4F6;
+}
+.table-view .table-row-cell:selected {
+    background-color: #DBEAFE;
+    -fx-text-fill: #1E3A8A;
+    font-weight: bold;
+}
+.table-view:focused .table-row-cell:selected {
+    background-color: #DBEAFE;
+}
+
 /* --- Button Styles --- */
 .button {
-    -fx-font-family: -fx-font-family-primary;
-    -fx-font-size: -fx-font-size-body;
-    -fx-padding: 8px 16px;
-    -fx-border-radius: 4px;
+    font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px; /* Direct value */
+    padding: 8px 16px;
+    border-radius: 4px;
     -fx-background-radius: 4px;
-    -fx-cursor: hand;
-    -fx-effect: -fx-shadow-subtle;
+    cursor: hand;
+    -fx-effect:dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0.1, 0, 1);
 }
 .button:hover {
-    -fx-effect: -fx-shadow-medium;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.2, 0, 2);
 }
 
 .button-primary {
-    -fx-background-color: -fx-primary-blue;
-    -fx-text-fill: -fx-white;
-    -fx-font-weight: bold;
+    background-color: #2563EB;
+    -fx-text-fill: #FFFFFF;
+    font-weight: bold;
 }
 .button-primary:hover {
-    -fx-background-color: derive(-fx-primary-blue, -10%);
+    background-color: derive(#2563EB, -10%);
 }
 
 .button-secondary {
-    -fx-background-color: -fx-white;
-    -fx-text-fill: -fx-primary-blue;
-    -fx-border-color: -fx-primary-blue;
-    -fx-border-width: 1px;
+    background-color: #FFFFFF;
+    -fx-text-fill: #2563EB;
+    border-color: #2563EB;
+    border-width: 1px;
 }
 .button-secondary:hover {
-    -fx-background-color: derive(-fx-light-blue-bg, -5%);
-    -fx-border-color: derive(-fx-primary-blue, -10%);
+    background-color: derive(#DBEAFE, -5%);
+    border-color: derive(#2563EB, -10%);
 }
     
 .button-danger {
-    -fx-background-color: -fx-ruby-error;
-    -fx-text-fill: -fx-white;
-    -fx-font-weight: bold;
+    background-color: #E11D48;
+    -fx-text-fill: #FFFFFF;
+    font-weight: bold;
 }
 .button-danger:hover {
-     -fx-background-color: derive(-fx-ruby-error, -10%);
+     background-color: derive(#E11D48, -10%);
 }
 
 .button-tertiary {
-    -fx-background-color: transparent;
-    -fx-text-fill: -fx-primary-blue;
-    -fx-padding: 5px 8px;
-    -fx-effect: none; /* No shadow for tertiary */
-    -fx-border-width: 0;
+    background-color: transparent;
+    -fx-text-fill: #2563EB;
+    padding: 5px 8px;
+    -fx-effect: none;
+    border-width: 0;
+     font-size: 13px; /* Direct value */
 }
 .button-tertiary:hover {
-    -fx-background-color: derive(-fx-light-blue-bg, -2%);
-    -fx-text-fill: derive(-fx-primary-blue, -10%);
+    background-color: derive(#DBEAFE, -2%);
+    -fx-text-fill: derive(#2563EB, -10%);
 }
 
 /* --- Side Navigation Panel Styles --- */
 .side-navigation-panel {
-    -fx-background-color: -fx-dark-blue-nav;
-    -fx-padding: 10px 0px 10px 0px; /* No horizontal padding for buttons to take full width */
+    background-color: #1E3A8A;
+    padding: 10px 0px 10px 0px;
 }
 
 .side-nav-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: #A5B4FC; /* Lighter blue/purple for text */
-    -fx-font-family: -fx-font-family-primary;
-    -fx-font-size: 13px; /* Slightly smaller for nav items */
-    -fx-padding: 12px 20px; /* Vertical padding, horizontal padding for text from graphic */
+    background-color: transparent;
+    -fx-text-fill: #A5B4FC;
+    font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px; /* Direct value */
+    padding: 12px 20px;
     -fx-alignment: center-left;
-    -fx-pref-width: 230px; /* Match VBox prefWidth in FXML */
-    -fx-border-radius: 0px; /* No radius for full-width feel */
+    -fx-pref-width: 230px;
+    border-radius: 0px;
     -fx-background-radius: 0px;
-    -fx-graphic-text-gap: 15px; /* Space between icon and text */
+    -fx-graphic-text-gap: 15px;
 }
 .side-nav-button:hover {
-    -fx-background-color: #2563EB; /* Primary blue on hover */
-    -fx-text-fill: -fx-white;
+    background-color: #2563EB; /* Primary blue on hover */
+    -fx-text-fill: #FFFFFF;
 }
-.side-nav-button:selected, .side-nav-button.selected { /* For active state */
-    -fx-background-color: -fx-primary-blue; /* Main brand color for selected */
-    -fx-text-fill: -fx-white;
-    -fx-font-weight: bold;
-}
-/* Icon color within side nav buttons */
-.side-nav-button .image-view { /* If using ImageView directly */
-    /* Color can't be easily changed for PNGs via CSS; use SVG or icon font for that */
-}
-.side-nav-button:hover .image-view,
-.side-nav-button:selected .image-view,
-.side-nav-button.selected .image-view {
-    /* Example: change opacity or use a different icon via styleclass toggle in code if needed */
+.side-nav-button:selected, .side-nav-button.selected {
+    background-color: #2563EB;
+    -fx-text-fill: #FFFFFF;
+    font-weight: bold;
 }
 
 /* --- Headings --- */
-.h1 { -fx-font-size: -fx-font-size-h1; -fx-font-weight: bold; -fx-text-fill: -fx-dark-blue-header; }
-.h2 { -fx-font-size: -fx-font-size-h2; -fx-font-weight: bold; -fx-text-fill: -fx-dark-blue-header; }
-.h3 { -fx-font-size: -fx-font-size-h3; -fx-font-weight: bold; -fx-text-fill: -fx-dark-gray-text; }
+.h1 { font-size: 24px; font-weight: bold; -fx-text-fill: #1E40AF; }
+.h2 { font-size: 20px; font-weight: bold; -fx-text-fill: #1E40AF; }
+.h3 { font-size: 18px; font-weight: bold; -fx-text-fill: #1F2937; }
 
 /* --- Main Content Area & Panels --- */
 .main-content-area {
-    -fx-background-color: -fx-light-gray-bg; /* Main background for content */
-    -fx-padding: 20px; /* Padding around the content views */
+    background-color: #F3F4F6;
+    padding: 20px;
 }
 
 .content-panel { 
-    -fx-background-color: -fx-white;
-    -fx-padding: 20px;
-    -fx-border-radius: 6px;
+    background-color: #FFFFFF;
+    padding: 20px;
+    border-radius: 6px;
     -fx-background-radius: 6px;
-    -fx-effect: -fx-shadow-subtle;
+    -fx-effect:dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0.1, 0, 1);
 }
 
 /* --- DialogPane Styles --- */
 .dialog-pane {
-    -fx-font-family: -fx-font-family-primary;
-    -fx-background-color: -fx-white;
-    -fx-border-color: -fx-border-color-medium;
-    -fx-border-width: 1px;
-    -fx-effect: -fx-shadow-medium;
+    font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background-color: #FFFFFF;
+    border-color: #D1D5DB;
+    border-width: 1px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.2, 0, 2);
 }
-.dialog-pane > .graphic-container { /* Validation error label area */
-    -fx-padding: 10px 0 0 0;
+.dialog-pane > .graphic-container {
+    padding: 10px 0 0 0;
 }
 .dialog-pane .header-panel {
-    -fx-background-color: -fx-dark-blue-header; 
-    -fx-padding: 12px 15px;
-    -fx-border-width: 0 0 1px 0;
-    -fx-border-color: derive(-fx-dark-blue-header, -20%);
+    background-color: #1E40AF; 
+    padding: 12px 15px;
+    border-width: 0 0 1px 0;
+    border-color: derive(#1E40AF, -20%);
 }
-.dialog-pane .header-panel .label { /* The title label in the header */
-    -fx-font-size: -fx-font-size-h3;
-    -fx-text-fill: -fx-white; 
-    -fx-font-weight: bold;
+.dialog-pane .header-panel .label {
+    font-size: 18px; /* Direct value */
+    -fx-text-fill: #FFFFFF; 
+    font-weight: bold;
 }
-.dialog-pane > .content.label { /* For simple content labels */
-     -fx-padding: 15px;
+.dialog-pane > .content.label {
+     padding: 15px;
+     font-size: 14px; /* Direct value */
 }
-.dialog-pane > .content { /* For general content node */
-     -fx-padding: 15px;
+.dialog-pane > .content {
+     padding: 15px;
 }
 .dialog-pane .button-bar .container { 
-    -fx-padding: 15px 10px 10px 10px;
-    -fx-background-color: -fx-light-gray-bg; /* Button bar background */
+    padding: 15px 10px 10px 10px;
+    background-color: #F3F4F6;
 }
 .dialog-pane .button {
-    -fx-font-size: -fx-font-size-body;
+    font-size: 14px; /* Direct value */
 }
-/* Style the default (OK/Save) button in dialogs as primary */
 .dialog-pane > .button-bar > .container > .button:default {
-   -fx-background-color: -fx-primary-blue;
-   -fx-text-fill: -fx-white;
-   -fx-font-weight: bold;
+   background-color: #2563EB;
+   -fx-text-fill: #FFFFFF;
+   font-weight: bold;
 }
 .dialog-pane > .button-bar > .container > .button:default:hover {
-   -fx-background-color: derive(-fx-primary-blue, -10%);
+   background-color: derive(#2563EB, -10%);
 }
-.dialog-pane > .button-bar > .container > .button:cancel { /* For cancel buttons */
-   /* Add specific cancel button styles if needed, or rely on default button style */
-}
-
 
 /* --- Dashboard Specific Styles --- */
 .dashboard-section-title {
-    -fx-font-size: -fx-font-size-h2; /* 20px */
-    -fx-font-weight: bold;
-    -fx-text-fill: -fx-dark-blue-header;
-    -fx-padding: 0 0 10px 0; /* Bottom padding */
+    font-size: 20px; /* Direct value */
+    font-weight: bold;
+    -fx-text-fill: #1E40AF;
+    padding: 0 0 10px 0;
 }
 
 .dashboard-card {
-    /* ... (existing styles: background, padding, radius, shadow, alignment, spacing) ... */
-    -fx-border-width: 0 0 0 4px; /* Left border for accent */
-    -fx-border-color: transparent; /* Default no accent color */
+    background-color: #FFFFFF;
+    padding: 20px;
+    border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.2, 0, 2); 
+    -fx-alignment: top-left;
+    -fx-spacing: 8px; 
+    min-width: 220px;
+    border-width: 0 0 0 4px;
+    border-color: transparent;
 }
+.dashboard-card-accent-teal { border-left-color: #0D9488; }
+.dashboard-card-accent-amber {border-left-color: #F59E0B; }
+.dashboard-card-accent-ruby { border-left-color: #E11D48; }
 
-.dashboard-card-accent-teal {
-    -fx-border-left-color: -fx-teal-success; /* Variable name from .root */
+.dashboard-card .metric-title {
+    font-size: 14px; /* Direct value */
+    -fx-text-fill: #6B7280;
+    font-weight: normal;
 }
-.dashboard-card-accent-amber {
-    -fx-border-left-color: -fx-amber-warning;
+.dashboard-card .metric-value {
+    font-size: 24px; /* Direct value */
+    font-weight: bold;
+    -fx-text-fill: #1E40AF;
 }
-.dashboard-card-accent-ruby {
-    -fx-border-left-color: -fx-ruby-error;
-}
-/* Metric value colors can also be set directly if preferred over card border */
-/* .metric-value-teal { -fx-text-fill: -fx-teal-success; } */
 
 .dashboard-placeholder-section {
-    -fx-background-color: -fx-white;
-    -fx-padding: 20px;
-    -fx-border-radius: 8px;
+    background-color: #FFFFFF;
+    padding: 20px;
+    border-radius: 8px;
     -fx-background-radius: 8px;
-    -fx-effect: -fx-shadow-medium;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.2, 0, 2);
     -fx-alignment: center;
-    -fx-text-fill: -fx-medium-gray-text;
-    -fx-font-style: italic;
+    -fx-text-fill: #6B7280;
+    font-style: italic;
+    font-size: 14px; /* Direct value */
 }
 
-/* --- TableView Styles (Continued for specific column alignments etc.) --- */
 /* --- TableView Cell Specific Styles for Stock --- */
 .table-row-cell .stock-critical {
-    -fx-text-fill: -fx-ruby-error; /* #E11D48 */
-    -fx-font-weight: bold;
+    -fx-text-fill: #E11D48;
+    font-weight: bold;
 }
 .table-row-cell .stock-low {
-    -fx-text-fill: -fx-amber-warning; /* #F59E0B */
-    -fx-font-weight: normal; /* or bold if preferred */
+    -fx-text-fill: #F59E0B;
 }
 .table-row-cell .stock-sufficient {
-    -fx-text-fill: -fx-teal-success; /* Or -fx-dark-gray-text for normal */
-    -fx-font-weight: normal;
+    -fx-text-fill: #0D9488; /* Or #1F2937 */
 }
-
-/* Optional: Style entire row based on stock - more complex, requires rowFactory */
-
-.table-row-cell.stock-row-critical {
-    -fx-background-color: derive(-fx-ruby-error, 80%);
-}
-.table-row-cell.stock-row-low {
-    -fx-background-color: derive(-fx-amber-warning, 80%);
-}
-
 
 /* Chart Styles (Basic) */
 .chart-title {
-    -fx-font-family: -fx-font-family-primary;
-    -fx-font-size: -fx-font-size-h3;
-    -fx-text-fill: -fx-dark-blue-header;
+    font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 18px; /* Direct value */
+    -fx-text-fill: #1E40AF;
 }
 .axis-label {
-    -fx-font-family: -fx-font-family-primary;
-    -fx-font-size: -fx-font-size-small;
-    -fx-text-fill: -fx-medium-gray-text;
+    font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 12px; /* Direct value */
+    -fx-text-fill: #6B7280;
 }
 .chart-plot-background {
-    -fx-background-color: derive(-fx-light-gray-bg, -2%);
+    background-color: derive(#F3F4F6, -2%);
 }
-.chart-bar { /* Default bar color for BarChart */
-    -fx-bar-fill: -fx-primary-blue;
+.chart-bar { 
+    -fx-bar-fill: #2563EB;
 }
 .chart-legend {
-    -fx-background-color: -fx-white;
-    -fx-padding: 5px;
-    -fx-border-color: -fx-border-color-light;
-    -fx-border-radius: 3px;
+    background-color: #FFFFFF;
+    padding: 5px;
+    border-color: #E5E7EB;
+    border-radius: 3px;
+    font-size: 12px; /* Direct value */
 }
 
-/* ScrollPane style - remove border */
+/* ScrollPane style */
 .scroll-pane {
-    -fx-background-color: transparent; /* Make ScrollPane itself transparent */
+    background-color: transparent;
 }
 .scroll-pane > .viewport {
-   -fx-background-color: transparent;
+   background-color: transparent;
 }
 .scroll-pane > .corner {
-    -fx-background-color: transparent;
+    background-color: transparent;
 }
 
-/* Make progress indicator color match theme */
+/* Progress indicator color */
 .progress-indicator .percentage, .progress-indicator .indeterminate-segment {
-    -fx-background-color: -fx-primary-blue;
+    background-color: #2563EB;
 }

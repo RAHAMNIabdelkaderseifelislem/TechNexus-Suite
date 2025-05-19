@@ -77,19 +77,25 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
             <version>${javafx.version}</version>
-            <classifier>win</classifier> <!-- Add classifiers for other OS if needed -->
+            <classifier>win</classifier> <!-- Add classifier for your OS -->
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-base</artifactId>
             <version>${javafx.version}</version>
-            <classifier>win</classifier>
+            <classifier>win</classifier> <!-- Add classifier for your OS -->
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-media</artifactId>
             <version>${javafx.version}</version>
-            <classifier>win</classifier>
+            <classifier>win</classifier> <!-- Add classifier for your OS -->
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-web</artifactId> <!-- If using WebView, it also needs native parts -->
+            <version>${javafx.version}</version>
+            <classifier>win</classifier> <!-- Add classifier for your OS -->
         </dependency>
 
         <!-- Optional: For better logging -->
@@ -151,11 +157,12 @@
                 <version>${javafx-maven-plugin.version}</version>
                 <configuration>
                     <mainClass>${javafx.main.class}</mainClass>
-                    <!-- Configuration for non-modular applications -->
-                    <options>
+                    <options> <!-- These are important for non-modular apps on JDK 9+ -->
                         <option>--add-exports=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED</option>
                         <option>--add-opens=javafx.controls/javafx.scene.control.skin=ALL-UNNAMED</option>
                         <option>--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED</option>
+                        <option>--add-opens=javafx.graphics/javafx.scene.text=ALL-UNNAMED</option>
+                        <option>--add-opens=javafx.graphics/javafx.scene.paint=ALL-UNNAMED</option>
                     </options>
                 </configuration>
             </plugin>
