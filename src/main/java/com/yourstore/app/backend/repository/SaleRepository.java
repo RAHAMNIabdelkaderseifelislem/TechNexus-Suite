@@ -27,4 +27,7 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
            "FROM Sale s JOIN s.items si " +
            "GROUP BY si.product.category ORDER BY salesCount DESC")
     List<Object[]> findSalesCountPerCategory(); // Object[] because category is Enum
+    // In SaleRepository.java
+    @Query("SELECT SUM(s.totalAmount) FROM Sale s WHERE DATE(s.saleDate) = CURRENT_DATE")
+    BigDecimal findTodaysSalesRevenue();
 }

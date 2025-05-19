@@ -243,32 +243,42 @@
 }
 
 
-/* --- Dashboard Card Styles --- */
+/* --- Dashboard Specific Styles --- */
+.dashboard-section-title {
+    -fx-font-size: -fx-font-size-h2; /* 20px */
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-dark-blue-header;
+    -fx-padding: 0 0 10px 0; /* Bottom padding */
+}
+
 .dashboard-card {
+    /* ... (existing styles: background, padding, radius, shadow, alignment, spacing) ... */
+    -fx-border-width: 0 0 0 4px; /* Left border for accent */
+    -fx-border-color: transparent; /* Default no accent color */
+}
+
+.dashboard-card-accent-teal {
+    -fx-border-left-color: -fx-teal-success; /* Variable name from .root */
+}
+.dashboard-card-accent-amber {
+    -fx-border-left-color: -fx-amber-warning;
+}
+.dashboard-card-accent-ruby {
+    -fx-border-left-color: -fx-ruby-error;
+}
+/* Metric value colors can also be set directly if preferred over card border */
+/* .metric-value-teal { -fx-text-fill: -fx-teal-success; } */
+
+.dashboard-placeholder-section {
     -fx-background-color: -fx-white;
     -fx-padding: 20px;
     -fx-border-radius: 8px;
     -fx-background-radius: 8px;
-    -fx-effect: -fx-shadow-medium; 
-    -fx-alignment: top-left; /* VBox content alignment */
-    -fx-spacing: 8px; 
-    -fx-min-width: 220px; /* Ensure cards have some min width */
-}
-.dashboard-card .metric-title {
-    -fx-font-size: -fx-font-size-body;
+    -fx-effect: -fx-shadow-medium;
+    -fx-alignment: center;
     -fx-text-fill: -fx-medium-gray-text;
-    -fx-font-weight: normal; /* Ensure it's not bold from a general label style */
+    -fx-font-style: italic;
 }
-.dashboard-card .metric-value {
-    -fx-font-size: -fx-font-size-h1; /* Larger for metric value */
-    -fx-font-weight: bold;
-    -fx-text-fill: -fx-dark-blue-header;
-}
-/* Color variations for metric values */
-.dashboard-card-teal .metric-value { -fx-text-fill: -fx-teal-success; }
-.dashboard-card-amber .metric-value { -fx-text-fill: -fx-amber-warning; }
-.dashboard-card-ruby .metric-value { -fx-text-fill: -fx-ruby-error; }
-
 
 /* --- TableView Styles (Continued for specific column alignments etc.) --- */
 .table-view .table-column {

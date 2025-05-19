@@ -3,57 +3,94 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.text.Font?>
 
-<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.yourstore.app.frontend.controller.DashboardViewController"
-      spacing="20.0" alignment="TOP_CENTER" styleClass="main-content-area">
+<ScrollPane fitToWidth="true" fitToHeight="true" styleClass="main-content-area" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.yourstore.app.frontend.controller.DashboardViewController">
+    <content>
+        <VBox spacing="25.0" alignment="TOP_CENTER" style="-fx-padding: 10;"> <!-- Overall VBox for padding -->
+            <Label text="Dashboard" styleClass="h1">
+                <VBox.margin><Insets bottom="10.0"/></VBox.margin>
+            </Label>
 
-    <Label text="Store Dashboard" styleClass="h1">
-        <VBox.margin><Insets bottom="25.0" top="5.0"/></VBox.margin>
-    </Label>
+            <!-- Metric Cards Row -->
+            <HBox fx:id="metricCardsHBox" spacing="20.0" alignment="CENTER">
+                <!-- Card 1: Today's Sales -->
+                <VBox fx:id="todaysSalesCard" styleClass="dashboard-card" prefWidth="240" minHeight="100">
+                    <Label text="TODAY'S SALES" styleClass="metric-title"/>
+                    <Label fx:id="todaysSalesLabel" text="\$0.00" styleClass="metric-value"/>
+                </VBox>
+                <!-- Card 2: Products in Stock -->
+                <VBox fx:id="productsInStockCard" styleClass="dashboard-card" prefWidth="240" minHeight="100">
+                    <Label text="PRODUCTS IN STOCK" styleClass="metric-title"/>
+                    <Label fx:id="totalProductsLabel" text="0" styleClass="metric-value"/>
+                </VBox>
+                <!-- Card 3: Pending Repairs -->
+                <VBox fx:id="pendingRepairsCard" styleClass="dashboard-card" prefWidth="240" minHeight="100">
+                    <Label text="PENDING REPAIRS" styleClass="metric-title"/>
+                    <Label fx:id="pendingRepairsLabel" text="0" styleClass="metric-value"/>
+                </VBox>
+                <!-- Card 4: Low Stock Items -->
+                <VBox fx:id="lowStockItemsCard" styleClass="dashboard-card" prefWidth="240" minHeight="100">
+                    <Label text="LOW STOCK ITEMS" styleClass="metric-title"/>
+                    <Label fx:id="lowStockItemsLabel" text="0" styleClass="metric-value"/>
+                </VBox>
+            </HBox>
 
-    <TilePane fx:id="metricsTilePane" orientation="HORIZONTAL" prefColumns="3" 
-              hgap="25.0" vgap="25.0" alignment="CENTER">
-        <padding><Insets bottom="20.0"/></padding>
-        
-        <!-- Card 1: Total Products -->
-        <VBox fx:id="totalProductsCard" styleClass="dashboard-card" prefWidth="280" minHeight="120"> <!-- Added fx:id -->
-            <Label text="TOTAL PRODUCTS" styleClass="metric-title"/>
-            <Label fx:id="totalProductsLabel" text="Loading..." styleClass="metric-value"/>
+            <Button fx:id="refreshButton" text="Refresh Metrics" onAction="#loadDashboardMetrics" styleClass="button-secondary">
+                <VBox.margin><Insets top="0" bottom="15.0"/></VBox.margin>
+            </Button>
+
+            <!-- Main Content Grid -->
+            <GridPane hgap="20.0" vgap="20.0" VBox.vgrow="ALWAYS">
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="65.0" hgrow="SOMETIMES"/>
+                    <ColumnConstraints percentWidth="35.0" hgrow="SOMETIMES"/>
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="300.0" vgrow="SOMETIMES"/> <!-- Row for Weekly Sales & Latest Repairs -->
+                    <RowConstraints minHeight="250.0" vgrow="SOMETIMES"/> <!-- Row for Recent Sales & Low Stock -->
+                </rowConstraints>
+
+                <!-- Weekly Sales Chart (Spans 1 column, 1 row by default) -->
+                <VBox GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="content-panel" spacing="10">
+                    <Label text="Weekly Sales" styleClass="dashboard-section-title"/>
+                    <BarChart fx:id="salesByCategoryChart" title="" prefHeight="300.0" VBox.vgrow="ALWAYS" animated="false">
+                        <xAxis><CategoryAxis fx:id="categoryAxis" label="Day"/></xAxis> <!-- Changed label -->
+                        <yAxis><NumberAxis fx:id="salesCountAxis" label="Sales Amount" side="LEFT" minorTickVisible="false"/></yAxis>
+                    </BarChart>
+                </VBox>
+
+                <!-- Latest Repair Jobs Placeholder -->
+                <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="content-panel" spacing="10">
+                    <Label text="Latest Repair Jobs" styleClass="dashboard-section-title"/>
+                    <VBox fx:id="latestRepairsPlaceholder" alignment="CENTER" VBox.vgrow="ALWAYS" styleClass="dashboard-placeholder-section">
+                       <Label text="Latest Repairs List - Coming Soon"/>
+                    </VBox>
+                    <Hyperlink text="View All Repairs" onAction="#navigateToViewRepairs"/>
+                </VBox>
+
+                <!-- Recent Sales Placeholder -->
+                <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="content-panel" spacing="10">
+                     <Label text="Recent Sales" styleClass="dashboard-section-title"/>
+                     <VBox fx:id="recentSalesPlaceholder" alignment="CENTER" VBox.vgrow="ALWAYS" styleClass="dashboard-placeholder-section">
+                        <Label text="Recent Sales Table - Coming Soon"/>
+                     </VBox>
+                     <Hyperlink text="View All Sales" onAction="#navigateToViewSales"/>
+                </VBox>
+
+                <!-- Low Stock Alerts Placeholder -->
+                 <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="content-panel" spacing="10">
+                     <Label text="Low Stock Alerts" styleClass="dashboard-section-title"/>
+                     <VBox fx:id="lowStockAlertsPlaceholder" alignment="CENTER" VBox.vgrow="ALWAYS" styleClass="dashboard-placeholder-section">
+                         <Label text="Low Stock Table - Coming Soon"/>
+                     </VBox>
+                     <Hyperlink text="Order Stock / View All Products" onAction="#navigateToProducts"/>
+                </VBox>
+            </GridPane>
         </VBox>
-
-        <!-- Card 2: Total Sales Count -->
-        <VBox fx:id="totalSalesCountCard" styleClass="dashboard-card" prefWidth="280" minHeight="120"> <!-- Added fx:id -->
-            <Label text="TOTAL SALES COUNT" styleClass="metric-title"/>
-            <Label fx:id="totalSalesCountLabel" text="Loading..." styleClass="metric-value"/>
-        </VBox>
-
-        <!-- Card 3: Total Sales Revenue -->
-        <VBox fx:id="totalRevenueCard" styleClass="dashboard-card" prefWidth="280" minHeight="120"> <!-- ONLY base styleClass here. Conditional ones in controller. Added fx:id -->
-            <Label text="TOTAL SALES REVENUE" styleClass="metric-title"/>
-            <Label fx:id="totalRevenueLabel" text="Loading..." styleClass="metric-value"/>
-        </VBox>
-        
-        <!-- Card 4: Pending Repairs Card -->
-        <VBox fx:id="pendingRepairsCard" styleClass="dashboard-card" prefWidth="280" minHeight="120"> <!-- ONLY base styleClass here. Conditional ones in controller. Added fx:id -->
-            <Label text="PENDING REPAIRS" styleClass="metric-title"/>
-            <Label fx:id="pendingRepairsLabel" text="Loading..." styleClass="metric-value"/>
-        </VBox>
-
-    </TilePane>
-    
-    <Button fx:id="refreshButton" text="Refresh Metrics" onAction="#loadDashboardMetrics" styleClass="button-secondary">
-        <VBox.margin><Insets bottom="25.0"/></VBox.margin>
-    </Button>
-
-    <BarChart fx:id="salesByCategoryChart" title="Sales Count by Product Category" prefHeight="350.0" VBox.vgrow="ALWAYS" animated="true">
-        <xAxis><CategoryAxis fx:id="categoryAxis" label="Product Category" tickLabelGap="5"/></xAxis>
-        <yAxis><NumberAxis fx:id="salesCountAxis" label="Number of Sales" side="LEFT" minorTickVisible="false"/></yAxis>
-    </BarChart>
-</VBox>
+    </content>
+</ScrollPane>

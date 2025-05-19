@@ -16,37 +16,48 @@ import java.util.stream.Collectors;
 
 @Service
 public class DashboardService {
-
     private final ProductRepository productRepository;
     private final SaleRepository saleRepository;
-    private final RepairJobRepository repairJobRepository;
+    private final RepairJobRepository repairJobRepository; // Add this
+    private static final int LOW_STOCK_THRESHOLD = 5; // Define a threshold
 
     @Autowired
     public DashboardService(ProductRepository productRepository, SaleRepository saleRepository, RepairJobRepository repairJobRepository) {
         this.productRepository = productRepository;
         this.saleRepository = saleRepository;
-        this.repairJobRepository = repairJobRepository;
+        this.repairJobRepository = repairJobRepository; // Initialize
     }
 
     public Map<String, Object> getDashboardMetrics() {
         Map<String, Object> metrics = new HashMap<>();
+        // Existing metrics
         metrics.put("totalProducts", productRepository.count());
         metrics.put("totalSalesCount", saleRepository.count());
         BigDecimal totalRevenue = saleRepository.findTotalSalesRevenue();
         metrics.put("totalSalesRevenue", totalRevenue != null ? totalRevenue : BigDecimal.ZERO);
-        metrics.put("pendingRepairsCount", repairJobRepository.countPendingRepairs() != null ? repairJobRepository.countPendingRepairs() : 0L);
 
         List<Object[]> salesByCategoryData = saleRepository.findSalesCountPerCategory();
+        // ... (salesByCategory processing as before) ...
         if (salesByCategoryData != null) {
             metrics.put("salesByCategory", salesByCategoryData.stream()
-                .filter(row -> row[0] instanceof ProductCategory && row[1] instanceof Long) // Type check
+                .filter(row -> row[0] instanceof ProductCategory && row[1] instanceof Long)
                 .collect(Collectors.toMap(
-                    row -> ((ProductCategory)row[0]).toString(), // Category Name
-                    row -> (Long)row[1]                            // Count
+                    row -> ((ProductCategory)row[0]).toString(),
+                    row -> (Long)row[1]
                 )));
         } else {
             metrics.put("salesByCategory", Collections.emptyMap());
         }
+
+        // New Metrics
+        BigDecimal todaysRevenue = saleRepository.findTodaysSalesRevenue();
+        metrics.put("todaysSalesRevenue", todaysRevenue != null ? todaysRevenue : BigDecimal.ZERO);
+
+        metrics.put("lowStockItemsCount", productRepository.countLowStockItems(LOW_STOCK_THRESHOLD));
+        
+        Long pendingRepairs = repairJobRepository.countPendingRepairs(); // From previous commit
+        metrics.put("pendingRepairsCount", pendingRepairs != null ? pendingRepairs : 0L);
+        
         return metrics;
     }
 }

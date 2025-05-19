@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -30,155 +31,175 @@ import java.util.Map;
 
 @Component
 public class DashboardViewController {
-
     private static final Logger logger = LoggerFactory.getLogger(DashboardViewController.class);
 
-    @FXML private Label totalProductsLabel;
-    @FXML private Label totalSalesCountLabel;
-    @FXML private Label totalRevenueLabel;
-    @FXML private Label pendingRepairsLabel; // For the new card
+    // Metric Card Labels
+    @FXML private Label todaysSalesLabel;
+    @FXML private Label totalProductsLabel; // Was already there
+    @FXML private Label pendingRepairsLabel;
+    @FXML private Label lowStockItemsLabel; // New label for the card
 
-    @FXML private BarChart<String, Number> salesByCategoryChart;
-    @FXML private CategoryAxis categoryAxis; // Although not directly manipulated after FXML load, good to have if needed
-    @FXML private NumberAxis salesCountAxis;
+    // Metric Card VBoxes (for applying accent styles)
+    @FXML private VBox todaysSalesCard;
+    @FXML private VBox productsInStockCard; // Renamed from totalProductsCard for clarity
+    @FXML private VBox pendingRepairsCard;
+    @FXML private VBox lowStockItemsCard;
+
+    // Chart (as before)
+    @FXML private BarChart<String, Number> salesByCategoryChart; // Or rename to weeklySalesChart
+    @FXML private CategoryAxis categoryAxis;
+    @FXML private NumberAxis salesCountAxis; // Or rename to salesAmountAxis
+
+    // Placeholder VBoxes
+    @FXML private VBox latestRepairsPlaceholder;
+    @FXML private VBox recentSalesPlaceholder;
+    @FXML private VBox lowStockAlertsPlaceholder;
+
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private final StageManager stageManager; // For alerts
+    private final StageManager stageManager;
+    private final ConfigurableApplicationContext springContext; // For accessing MainViewController
 
     @Value("${server.port:8080}")
     private String serverPort;
     private String getDashboardBaseUrl() { return "http://localhost:" + serverPort + "/api/v1/dashboard"; }
 
-    private final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("en", "US")); // Example: US Dollar
+    private final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("en", "US"));
 
     @Autowired
-    public DashboardViewController(HttpClient httpClient, ObjectMapper objectMapper, StageManager stageManager) {
+    public DashboardViewController(HttpClient httpClient, ObjectMapper objectMapper, StageManager stageManager, ConfigurableApplicationContext springContext) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.stageManager = stageManager;
+        this.springContext = springContext;
     }
 
     @FXML
     public void initialize() {
         logger.info("Initializing DashboardViewController.");
-        // Set initial loading text for the new card
-        if (pendingRepairsLabel != null) {
-            pendingRepairsLabel.setText("Loading...");
-        }
+        // Initial chart setup (axis labels etc. can be set here if not in FXML)
+        // categoryAxis.setLabel("Day of Week"); // Or Product Category for the current chart
+        // salesCountAxis.setLabel("Sales Amount");
         loadDashboardMetrics();
     }
 
     @FXML
     private void loadDashboardMetrics() {
         logger.info("Loading dashboard metrics...");
-        setLabelsLoading();
-        salesByCategoryChart.getData().clear(); // Clear previous chart data
+        setMetricsLoadingState();
+        salesByCategoryChart.getData().clear();
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(getDashboardBaseUrl() + "/metrics"))
-                .GET()
-                .build();
+                .GET().build();
 
         httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-            .thenAcceptAsync(response -> { // Run UI updates on JavaFX Application Thread
-                Platform.runLater(() -> {
-                    if (response.statusCode() == 200) {
-                        try {
-                            Map<String, Object> metrics = objectMapper.readValue(response.body(), new TypeReference<>() {});
-                            logger.debug("Metrics received: {}", metrics);
+            .thenAcceptAsync(response -> Platform.runLater(() -> {
+                if (response.statusCode() == 200) {
+                    try {
+                        Map<String, Object> metrics = objectMapper.readValue(response.body(), new TypeReference<>() {});
+                        logger.debug("Dashboard metrics received: {}", metrics);
 
-                            totalProductsLabel.setText(metrics.getOrDefault("totalProducts", "N/A").toString());
-                            totalSalesCountLabel.setText(metrics.getOrDefault("totalSalesCount", "N/A").toString());
-                            
-                            Object revenueObj = metrics.get("totalSalesRevenue");
-                            if (revenueObj instanceof Number) {
-                                totalRevenueLabel.setText(currencyFormatter.format(((Number) revenueObj).doubleValue()));
-                                // Example: Apply style class based on value
-                                VBox revenueCard = (VBox) totalRevenueLabel.getParent();
-                                revenueCard.getStyleClass().remove("dashboard-card-teal"); // remove others if any
-                                if (((Number) revenueObj).doubleValue() > 0) {
-                                    revenueCard.getStyleClass().add("dashboard-card-teal");
-                                }
+                        // Populate Metric Cards
+                        Object todaysSalesObj = metrics.get("todaysSalesRevenue");
+                        if (todaysSalesCard != null) {
+                            todaysSalesCard.getStyleClass().removeAll("dashboard-card-accent-teal");
+                            if (todaysSalesObj instanceof Number) {
+                                double revenue = ((Number) todaysSalesObj).doubleValue();
+                                todaysSalesLabel.setText(currencyFormatter.format(revenue));
+                                if (revenue > 0) todaysSalesCard.getStyleClass().add("dashboard-card-accent-teal");
                             } else {
-                                totalRevenueLabel.setText(revenueObj != null ? revenueObj.toString() : "N/A");
+                                todaysSalesLabel.setText(todaysSalesObj != null ? todaysSalesObj.toString() : "$0.00");
                             }
-
-                            // Example for pending repairs (assuming backend adds this metric)
-                            if (pendingRepairsLabel != null) {
-                                pendingRepairsLabel.setText(metrics.getOrDefault("pendingRepairsCount", "N/A").toString());
-                                VBox repairsCard = (VBox) pendingRepairsLabel.getParent();
-                                repairsCard.getStyleClass().removeAll("dashboard-card-amber", "dashboard-card-ruby");
-                                Object pendingRepairs = metrics.get("pendingRepairsCount");
-                                if (pendingRepairs instanceof Number && ((Number)pendingRepairs).intValue() > 0) {
-                                     repairsCard.getStyleClass().add("dashboard-card-amber");
-                                }
-                            }
-
-
-                            // Populate Bar Chart for Sales by Category
-                            if (metrics.get("salesByCategory") instanceof Map) {
-                                @SuppressWarnings("unchecked")
-                                Map<String, Number> salesCatData = (Map<String, Number>) metrics.get("salesByCategory");
-                                XYChart.Series<String, Number> series = new XYChart.Series<>();
-                                series.setName("Sales Count");
-                                if (salesCatData.isEmpty()) {
-                                    logger.info("No sales by category data to display in chart.");
-                                    // Optionally display a message on the chart
-                                } else {
-                                    salesCatData.forEach((category, count) -> {
-                                        series.getData().add(new XYChart.Data<>(category, count));
-                                    });
-                                }
-                                salesByCategoryChart.getData().setAll(series); // Clears old series and adds new one
-                            } else {
-                                 logger.warn("Sales by category data not found or not in expected map format.");
-                                 salesByCategoryChart.getData().clear();
-                            }
-
-                        } catch (IOException e) {
-                            logger.error("Failed to parse dashboard metrics: {}", e.getMessage(), e);
-                            showErrorUI("Failed to parse dashboard data.");
                         }
-                    } else {
-                        logger.error("Failed to load dashboard metrics. Status: {}", response.statusCode());
-                        showErrorUI("Failed to load dashboard metrics. Server returned status: " + response.statusCode());
+
+                        totalProductsLabel.setText(metrics.getOrDefault("totalProducts", "0").toString());
+
+                        Object pendingRepairsObj = metrics.get("pendingRepairsCount");
+                        if (pendingRepairsCard != null) {
+                            pendingRepairsCard.getStyleClass().removeAll("dashboard-card-accent-amber");
+                            String pendingText = (pendingRepairsObj != null) ? pendingRepairsObj.toString() : "0";
+                            pendingRepairsLabel.setText(pendingText);
+                            if (pendingRepairsObj instanceof Number && ((Number)pendingRepairsObj).intValue() > 0) {
+                                pendingRepairsCard.getStyleClass().add("dashboard-card-accent-amber");
+                            }
+                        }
+                        
+                        Object lowStockObj = metrics.get("lowStockItemsCount");
+                        if (lowStockItemsCard != null) {
+                            lowStockItemsCard.getStyleClass().removeAll("dashboard-card-accent-ruby");
+                            String lowStockText = (lowStockObj != null) ? lowStockObj.toString() : "0";
+                            lowStockItemsLabel.setText(lowStockText);
+                            if (lowStockObj instanceof Number && ((Number)lowStockObj).intValue() > 0) {
+                                lowStockItemsCard.getStyleClass().add("dashboard-card-accent-ruby");
+                            }
+                        }
+
+                        // Populate "Weekly Sales" Chart (currently sales by category)
+                        // TODO: Change backend to provide actual weekly sales data for this chart
+                        if (metrics.get("salesByCategory") instanceof Map) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Number> salesCatData = (Map<String, Number>) metrics.get("salesByCategory");
+                            XYChart.Series<String, Number> series = new XYChart.Series<>();
+                            series.setName("Sales Count"); // Or "Sales Amount" if data changes
+                            if (salesCatData.isEmpty()) {
+                                logger.info("No sales by category data for chart.");
+                            } else {
+                                salesCatData.forEach((category, count) -> series.getData().add(new XYChart.Data<>(category, count)));
+                            }
+                            salesByCategoryChart.getData().setAll(series);
+                        } else {
+                             logger.warn("Sales by category data not found or in unexpected format for chart.");
+                             salesByCategoryChart.getData().clear();
+                        }
+
+                    } catch (IOException e) {
+                        logger.error("Failed to parse dashboard metrics: {}", e.getMessage(), e);
+                        showErrorUIState("Failed to parse dashboard data.");
                     }
-                });
-            })
+                } else {
+                    logger.error("Failed to load dashboard metrics. Status: {}", response.statusCode());
+                    showErrorUIState("Server error loading dashboard (Status: " + response.statusCode() + ")");
+                }
+            }))
             .exceptionally(ex -> {
                 Platform.runLater(() -> {
-                    logger.error("Exception while fetching dashboard metrics: {}", ex.getMessage(), ex);
-                    showErrorUI("Error fetching dashboard metrics: " + ex.getCause().getMessage());
+                    logger.error("Exception fetching dashboard metrics: {}", ex.getMessage(), ex);
+                    showErrorUIState("Network error fetching dashboard data.");
                 });
                 return null;
             });
     }
     
-    private void setLabelsLoading() {
+    private void setMetricsLoadingState() {
+        todaysSalesLabel.setText("Loading...");
         totalProductsLabel.setText("Loading...");
-        totalSalesCountLabel.setText("Loading...");
-        totalRevenueLabel.setText("Loading...");
-        if (pendingRepairsLabel != null) {
-            pendingRepairsLabel.setText("Loading...");
-        }
-        // Clear style classes that might color the metric value
-        if (totalRevenueLabel != null && totalRevenueLabel.getParent() instanceof VBox) {
-            ((VBox)totalRevenueLabel.getParent()).getStyleClass().remove("dashboard-card-teal");
-        }
-        if (pendingRepairsLabel != null && pendingRepairsLabel.getParent() instanceof VBox) {
-            ((VBox)pendingRepairsLabel.getParent()).getStyleClass().removeAll("dashboard-card-amber", "dashboard-card-ruby");
-        }
+        pendingRepairsLabel.setText("Loading...");
+        lowStockItemsLabel.setText("Loading...");
+
+        if (todaysSalesCard != null) todaysSalesCard.getStyleClass().removeAll("dashboard-card-accent-teal");
+        if (pendingRepairsCard != null) pendingRepairsCard.getStyleClass().removeAll("dashboard-card-accent-amber");
+        if (lowStockItemsCard != null) lowStockItemsCard.getStyleClass().removeAll("dashboard-card-accent-ruby");
     }
     
-    private void showErrorUI(String message) {
+    private void showErrorUIState(String message) {
+        todaysSalesLabel.setText("Error");
         totalProductsLabel.setText("Error");
-        totalSalesCountLabel.setText("Error");
-        totalRevenueLabel.setText("Error");
-        if (pendingRepairsLabel != null) {
-             pendingRepairsLabel.setText("Error");
-        }
+        pendingRepairsLabel.setText("Error");
+        lowStockItemsLabel.setText("Error");
         salesByCategoryChart.getData().clear();
-        stageManager.showErrorAlert("Dashboard Error", message); // Use StageManager for alerts
+        stageManager.showErrorAlert("Dashboard Error", message);
+    }
+
+    // --- Navigation Handlers for Hyperlinks ---
+    @FXML private void navigateToViewRepairs() {
+        springContext.getBean(MainViewController.class).loadCenterView("/fxml/RepairsListView.fxml");
+    }
+    @FXML private void navigateToViewSales() {
+        springContext.getBean(MainViewController.class).loadCenterView("/fxml/SalesListView.fxml");
+    }
+    @FXML private void navigateToProducts() { // For "Order Stock" or "View All Products"
+        springContext.getBean(MainViewController.class).loadCenterView("/fxml/ProductListView.fxml");
     }
 }
