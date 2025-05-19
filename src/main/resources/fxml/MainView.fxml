@@ -1,92 +1,152 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ContentDisplay?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?> <!-- Added for Font -->
-<?import javafx.scene.control.ScrollPane?> <!-- Added for ScrollPane -->
-<?import javafx.scene.image.Image?> <!-- Added for Image -->
-
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
 <BorderPane fx:id="mainBorderPane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.yourstore.app.frontend.controller.MainViewController" prefHeight="768.0" prefWidth="1024.0">
+            fx:controller="com.yourstore.app.frontend.controller.MainViewController"
+            prefHeight="768.0" prefWidth="1280.0"> <!-- Increased width for side nav -->
     <top>
         <VBox>
-            <MenuBar BorderPane.alignment="CENTER">
+            <!-- Main Menu Bar (Can be styled further or simplified if side nav is primary) -->
+            <MenuBar fx:id="mainMenuBar">
                 <menus>
-                    <Menu mnemonicParsing="false" text="Overview">
+                    <Menu text="Overview">
                         <items>
-                            <MenuItem mnemonicParsing="false" onAction="#handleShowDashboard" text="Dashboard"/>
+                            <MenuItem onAction="#handleShowDashboard" text="Dashboard"/>
                         </items>
                     </Menu>
-                    <Menu mnemonicParsing="false" text="Stock">
+                    <Menu text="Stock">
                         <items>
-                            <MenuItem fx:id="manageProductsMenuItem" mnemonicParsing="false" onAction="#handleManageProducts" text="Manage Products"/>
-                            <!-- Removed duplicate View/Add Product menu items if manageProductsMenuItem covers it -->
+                            <MenuItem fx:id="manageProductsMenuItem" onAction="#handleManageProducts" text="Manage Products"/>
                         </items>
                     </Menu>
-                    <Menu mnemonicParsing="false" text="Sales">
+                    <Menu text="Sales">
                         <items>
-                            <MenuItem mnemonicParsing="false" onAction="#handleNewSaleInMain" text="New Sale"/>
-                            <MenuItem mnemonicParsing="false" onAction="#handleViewSales" text="View Sales Records"/>
+                            <MenuItem onAction="#handleNewSaleInMain" text="New Sale"/>
+                            <MenuItem onAction="#handleViewSales" text="View Sales Records"/>
                         </items>
                     </Menu>
-                    <Menu mnemonicParsing="false" text="Purchases">
+                    <Menu text="Purchases">
                         <items>
-                            <MenuItem mnemonicParsing="false" onAction="#handleNewPurchaseInMain" text="New Purchase"/>
-                            <MenuItem mnemonicParsing="false" onAction="#handleViewPurchases" text="View Purchase Records"/>
+                            <MenuItem onAction="#handleNewPurchaseInMain" text="New Purchase"/>
+                            <MenuItem onAction="#handleViewPurchases" text="View Purchase Records"/>
                         </items>
                     </Menu>
-                    <Menu mnemonicParsing="false" text="Repairs">
+                    <Menu text="Repairs">
                         <items>
-                            <MenuItem mnemonicParsing="false" onAction="#handleViewRepairs" text="Manage Repair Jobs"/>
+                            <MenuItem onAction="#handleViewRepairs" text="Manage Repair Jobs"/>
                         </items>
                     </Menu>
-                     <Menu mnemonicParsing="false" text="Reports">
+                    <Menu text="Reports">
                         <items>
-                            <!-- Placeholder report actions, can link to specific views or export actions -->
-                            <MenuItem mnemonicParsing="false" onAction="#handleSalesReport" text="Sales Report (Placeholder)"/>
-                            <MenuItem mnemonicParsing="false" onAction="#handleStockReport" text="Stock Report (Placeholder)"/>
+                            <MenuItem onAction="#handleSalesReport" text="Sales Report"/>
+                            <MenuItem onAction="#handleStockReport" text="Stock Report"/>
                         </items>
                     </Menu>
-                     <Menu mnemonicParsing="false" text="Admin">
+                    <Menu fx:id="adminMenu" text="Admin"> <!-- fx:id for role-based visibility -->
                         <items>
-                            <MenuItem fx:id="backupDbMenuItem" mnemonicParsing="false" onAction="#handleBackupDatabase" text="Backup Database"/>
-                            <!-- Future admin items -->
+                            <MenuItem fx:id="backupDbMenuItem" onAction="#handleBackupDatabase" text="Backup Database"/>
+                            <!-- Add other admin-specific menu items here -->
                         </items>
                     </Menu>
-                    <Menu mnemonicParsing="false" text="Settings"> <!-- Moved File content here -->
+                    <Menu text="Settings">
                         <items>
-                            <MenuItem mnemonicParsing="false" onAction="#handleAppSettings" text="Application Settings (Placeholder)"/>
-                            <MenuItem fx:id="logoutMenuItem" mnemonicParsing="false" onAction="#handleLogout" text="Logout"/>
-                            <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit"/>
+                            <MenuItem onAction="#handleAppSettings" text="Application Settings"/>
+                            <MenuItem fx:id="logoutMenuItem" onAction="#handleLogout" text="Logout"/>
+                            <MenuItem onAction="#handleExit" text="Exit"/>
                         </items>
                     </Menu>
-                    <Menu mnemonicParsing="false" text="Help">
+                    <Menu text="Help">
                         <items>
-                            <MenuItem mnemonicParsing="false" onAction="#handleAbout" text="About"/>
+                            <MenuItem onAction="#handleAbout" text="About"/>
                         </items>
                     </Menu>
                 </menus>
             </MenuBar>
-            <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-padding: 5 10 5 10; -fx-background-color: #f0f0f0;">
-                <Label fx:id="loggedInUserLabel" text="User: Not Logged In" style="-fx-font-style: italic;"/>
+
+            <!-- Top Bar Content -->
+            <HBox fx:id="topBarHBox" alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 8px 15px; -fx-background-color: -fx-white; -fx-border-width: 0 0 1 0; -fx-border-color: -fx-border-color-light;">
+                <Label text="TechNexus Suite" style="-fx-font-size: -fx-font-size-h2; -fx-font-weight: bold; -fx-text-fill: -fx-dark-blue-header;"/>
+                <Pane HBox.hgrow="ALWAYS"/> <!-- Flexible Spacer -->
+
+                <!-- Placeholder: Global Search -->
+                <TextField promptText="Global Search..." prefWidth="300" style="-fx-font-size: -fx-font-size-small;"/>
+
+                <!-- Placeholder: Notifications -->
+                <Button text="Notifications" styleClass="button-tertiary" contentDisplay="GRAPHIC_ONLY">
+                    <graphic>
+                        <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+                            <Image url="@../icons/bell_16.png"/> <!-- Update path if needed -->
+                        </ImageView>
+                    </graphic>
+                    <tooltip><Tooltip text="View notifications (0)"/></tooltip>
+                </Button>
+
+                <!-- User Info / Profile Action -->
+                <HBox alignment="CENTER" spacing="8">
+                    <Label fx:id="loggedInUserLabel" text="User: Loading..." style="-fx-text-fill: -fx-medium-gray-text;"/>
+                    <MenuButton text="" styleClass="button-tertiary" contentDisplay="GRAPHIC_ONLY" popupSide="BOTTOM">
+                         <graphic>
+                             <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+                                 <Image url="@../icons/user_16.png"/> <!-- Update path if needed -->
+                             </ImageView>
+                         </graphic>
+                         <items>
+                            <MenuItem text="My Profile (Placeholder)"/>
+                            <MenuItem text="Preferences (Placeholder)"/>
+                            <SeparatorMenuItem/>
+                            <MenuItem text="Logout" onAction="#handleLogout"/>
+                         </items>
+                         <tooltip><Tooltip text="User Options"/></tooltip>
+                    </MenuButton>
+                </HBox>
             </HBox>
         </VBox>
     </top>
+
+    <left>
+        <VBox fx:id="sideNavigationPanel" styleClass="side-navigation-panel" prefWidth="230" spacing="5">
+            <!-- Navigation buttons will be added by MainViewController in createSideNavigation() -->
+            <padding>
+                <Insets top="15" right="10" bottom="15" left="10"/>
+            </padding>
+        </VBox>
+    </left>
+
     <center>
-        <ScrollPane fx:id="homeScrollPane" fitToWidth="true" fitToHeight="true" BorderPane.alignment="CENTER" style="-fx-padding:10;">
-            <TilePane fx:id="mainTilesPane" alignment="TOP_LEFT" hgap="20" vgap="20" prefColumns="4" style="-fx-padding: 20;">
-                <!-- Tiles will be added programmatically by MainViewController -->
-            </TilePane>
-        </ScrollPane>
+        <!-- This StackPane will hold the content loaded by MainViewController.loadCenterView() -->
+        <!-- It allows for easy switching of views in the main area -->
+        <StackPane fx:id="mainContentArea" styleClass="main-content-area" BorderPane.alignment="CENTER">
+            <!-- Initial content (e.g., Dashboard or welcome tiles) will be loaded here by MainViewController -->
+            <!-- The old TilePane within a ScrollPane is now conceptually replaced by this, -->
+            <!-- and the "home" (tile view) will be loaded into this mainContentArea. -->
+        </StackPane>
     </center>
+    
     <bottom>
-        <HBox alignment="CENTER_LEFT" style="-fx-padding: 5 10 5 10; -fx-background-color: #e0e0e0;">
-            <Label fx:id="statusLabel" text="Ready."/>
-            <Pane HBox.hgrow="ALWAYS"/> <!-- Spacer -->
-            <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="20" prefWidth="20"/>
+        <HBox fx:id="statusBarHBox" alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 5px 10px; -fx-background-color: #e9ecef; -fx-border-width: 1 0 0 0; -fx-border-color: -fx-border-color-light;">
+            <Label fx:id="statusLabel" text="Ready." style="-fx-text-fill: -fx-medium-gray-text;"/>
+            <Pane HBox.hgrow="ALWAYS"/> <!-- Spacer to push progress indicator to the right -->
+            <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="22.0" prefWidth="22.0"/>
         </HBox>
     </bottom>
 </BorderPane>

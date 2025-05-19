@@ -2,6 +2,7 @@ package com.yourstore.app.backend.service;
 
 import com.yourstore.app.backend.model.enums.ProductCategory; // Import ProductCategory
 import com.yourstore.app.backend.repository.ProductRepository;
+import com.yourstore.app.backend.repository.RepairJobRepository;
 import com.yourstore.app.backend.repository.SaleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,11 +19,13 @@ public class DashboardService {
 
     private final ProductRepository productRepository;
     private final SaleRepository saleRepository;
+    private final RepairJobRepository repairJobRepository;
 
     @Autowired
-    public DashboardService(ProductRepository productRepository, SaleRepository saleRepository) {
+    public DashboardService(ProductRepository productRepository, SaleRepository saleRepository, RepairJobRepository repairJobRepository) {
         this.productRepository = productRepository;
         this.saleRepository = saleRepository;
+        this.repairJobRepository = repairJobRepository;
     }
 
     public Map<String, Object> getDashboardMetrics() {
@@ -31,6 +34,7 @@ public class DashboardService {
         metrics.put("totalSalesCount", saleRepository.count());
         BigDecimal totalRevenue = saleRepository.findTotalSalesRevenue();
         metrics.put("totalSalesRevenue", totalRevenue != null ? totalRevenue : BigDecimal.ZERO);
+        metrics.put("pendingRepairsCount", repairJobRepository.countPendingRepairs() != null ? repairJobRepository.countPendingRepairs() : 0L);
 
         List<Object[]> salesByCategoryData = saleRepository.findSalesCountPerCategory();
         if (salesByCategoryData != null) {
