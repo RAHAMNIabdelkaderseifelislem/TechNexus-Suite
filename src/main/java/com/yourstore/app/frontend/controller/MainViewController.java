@@ -200,7 +200,7 @@ public class MainViewController {
                     String message = responseMap.getOrDefault("message", "Backup process finished.");
                     String filePath = responseMap.getOrDefault("path", "N/A");
                     showProgress(false, message);
-                    showInfoAlert("Backup Success", message + "\nFile saved to: " + filePath);
+                    stageManager.showInfoAlert("Backup Success", message + "\nFile saved to: " + filePath);
                 }))
                 .exceptionally(ex -> {
                     Platform.runLater(() -> {

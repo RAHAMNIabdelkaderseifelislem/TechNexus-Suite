@@ -51,6 +51,7 @@ public class SecurityConfig {
                     .antMatchers(HttpMethod.GET, "/api/v1/sales/**").hasAnyAuthority(UserRole.ROLE_ADMIN.name(), UserRole.ROLE_MANAGER.name(), UserRole.ROLE_STAFF.name())
                     .antMatchers(HttpMethod.POST, "/api/v1/sales/**").hasAnyAuthority(UserRole.ROLE_ADMIN.name(), UserRole.ROLE_MANAGER.name(), UserRole.ROLE_STAFF.name())
                     .antMatchers("/api/v1/purchases/**").hasAnyAuthority(UserRole.ROLE_ADMIN.name(), UserRole.ROLE_MANAGER.name()) // Purchases for admin/manager
+                    .antMatchers("/api/v1/repairs/**").hasAnyAuthority(UserRole.ROLE_ADMIN.name(), UserRole.ROLE_MANAGER.name(), UserRole.ROLE_STAFF.name()) // Staff can manage repairs
                     .antMatchers("/api/v1/dashboard/**").authenticated()
                     .antMatchers("/api/v1/admin/**").hasAuthority(UserRole.ROLE_ADMIN.name())
                     .anyRequest().authenticated()
