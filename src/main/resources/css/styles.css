@@ -281,15 +281,29 @@
 }
 
 /* --- TableView Styles (Continued for specific column alignments etc.) --- */
-.table-view .table-column {
-    -fx-alignment: center-left; /* Default for most text */
+/* --- TableView Cell Specific Styles for Stock --- */
+.table-row-cell .stock-critical {
+    -fx-text-fill: -fx-ruby-error; /* #E11D48 */
+    -fx-font-weight: bold;
 }
-.table-view .table-column.numeric-column { /* Add this class to numeric columns in FXML or code */
-    -fx-alignment: center-right;
+.table-row-cell .stock-low {
+    -fx-text-fill: -fx-amber-warning; /* #F59E0B */
+    -fx-font-weight: normal; /* or bold if preferred */
 }
-.table-view .table-column.centered-column {
-    -fx-alignment: center;
+.table-row-cell .stock-sufficient {
+    -fx-text-fill: -fx-teal-success; /* Or -fx-dark-gray-text for normal */
+    -fx-font-weight: normal;
 }
+
+/* Optional: Style entire row based on stock - more complex, requires rowFactory */
+
+.table-row-cell.stock-row-critical {
+    -fx-background-color: derive(-fx-ruby-error, 80%);
+}
+.table-row-cell.stock-row-low {
+    -fx-background-color: derive(-fx-amber-warning, 80%);
+}
+
 
 /* Chart Styles (Basic) */
 .chart-title {

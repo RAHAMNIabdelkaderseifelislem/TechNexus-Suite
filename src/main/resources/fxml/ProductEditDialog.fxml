@@ -1,88 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.yourstore.app.backend.model.enums.ProductCategory?> <!-- For default items in ComboBox if needed, but controller populates -->
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonType?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DialogPane?>
-<?import javafx.scene.control.ButtonType?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory?>
+<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory?>
-<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
-
+<?import javafx.scene.layout.VBox?> <!-- Added for better structure of validation label -->
 
 <DialogPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.yourstore.app.frontend.controller.ProductEditDialogController"
-            prefWidth="500.0">
-    <header>
-        <Label fx:id="headerLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Add New Product"/>
+            prefWidth="550.0" prefHeight="600.0" styleClass="dialog-pane"> <!-- Apply dialog-pane style class -->
+
+    <header> <!-- The content here will be styled by .dialog-pane .header-panel in CSS -->
+        <Label fx:id="headerLabel" text="Product Details"/> <!-- Text set by controller -->
     </header>
+
     <content>
-        <GridPane hgap="10" vgap="10">
+        <GridPane hgap="10" vgap="12">
             <padding>
-                <Insets top="10" right="10" bottom="10" left="10"/>
+                <Insets top="15" right="20" bottom="10" left="20"/>
             </padding>
 
             <Label text="Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-            <TextField fx:id="nameField" GridPane.columnIndex="1" GridPane.rowIndex="0" promptText="Product Name"/>
+            <TextField fx:id="nameField" GridPane.columnIndex="1" GridPane.rowIndex="0" promptText="Enter product name"/>
 
             <Label text="Category:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-            <ComboBox fx:id="categoryComboBox" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="2000.0" promptText="Select Category"/>
+            <ComboBox fx:id="categoryComboBox" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="2000.0" promptText="Select category"/>
 
-            <Label text="Description:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-            <TextArea fx:id="descriptionArea" GridPane.columnIndex="1" GridPane.rowIndex="2" prefHeight="80.0" promptText="Product Description" wrapText="true"/>
+            <Label text="Description:" GridPane.columnIndex="0" GridPane.rowIndex="2" VBox.vgrow="ALWAYS"/>
+            <TextArea fx:id="descriptionArea" GridPane.columnIndex="1" GridPane.rowIndex="2" prefHeight="100.0" promptText="Enter product description" wrapText="true"/>
 
             <Label text="Supplier:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-            <TextField fx:id="supplierField" GridPane.columnIndex="1" GridPane.rowIndex="3" promptText="Supplier Name"/>
+            <TextField fx:id="supplierField" GridPane.columnIndex="1" GridPane.rowIndex="3" promptText="Enter supplier name"/>
 
             <Label text="Purchase Price:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-            <Spinner fx:id="purchasePriceSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="4" initialValue="0.0" min="0" max="100000.0" amountToStepBy="0.01" prefWidth="2000.0">
+            <Spinner fx:id="purchasePriceSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="4" initialValue="0.0" min="0.0" max="1000000.0" amountToStepBy="0.01" prefWidth="2000.0">
                  <valueFactory>
-                    <SpinnerValueFactory.DoubleSpinnerValueFactory min="0.0" max="100000.0" initialValue="0.0" amountToStepBy="0.01"/>
+                    <SpinnerValueFactory.DoubleSpinnerValueFactory min="0.0" max="10000000.0" initialValue="0.0" amountToStepBy="0.01" precision="2"/>
                 </valueFactory>
             </Spinner>
 
             <Label text="Selling Price:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-            <Spinner fx:id="sellingPriceSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="5" initialValue="0.0" min="0" max="100000.0" amountToStepBy="0.01" prefWidth="2000.0">
+            <Spinner fx:id="sellingPriceSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="5" initialValue="0.01" min="0.01" max="1000000.0" amountToStepBy="0.01" prefWidth="2000.0">
                 <valueFactory>
-                    <SpinnerValueFactory.DoubleSpinnerValueFactory min="0.0" max="100000.0" initialValue="0.0" amountToStepBy="0.01"/>
+                    <SpinnerValueFactory.DoubleSpinnerValueFactory min="0.01" max="10000000.0" initialValue="0.01" amountToStepBy="0.01" precision="2"/>
                 </valueFactory>
             </Spinner>
 
-
             <Label text="Quantity in Stock:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
-            <Spinner fx:id="quantitySpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="6" initialValue="0" min="0" max="10000" amountToStepBy="1" prefWidth="2000.0">
+            <Spinner fx:id="quantitySpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="6" initialValue="0" min="0" max="100000" amountToStepBy="1" prefWidth="2000.0">
                  <valueFactory>
-                    <SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="10000" initialValue="0" amountToStepBy="1"/>
+                    <SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="100000" initialValue="0" amountToStepBy="1"/>
                 </valueFactory>
             </Spinner>
 
             <columnConstraints>
-                <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="100.0"/>
+                <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="130.0" prefWidth="130.0"/>
                 <ColumnConstraints hgrow="ALWAYS"/>
             </columnConstraints>
-            <rowConstraints>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-            </rowConstraints>
         </GridPane>
     </content>
+
+    <!-- Graphic for validation errors, styled by CSS if needed, or use default red text -->
+    <graphic>
+        <VBox alignment="CENTER_LEFT" spacing="5">
+             <Label fx:id="validationErrorLabel" style="-fx-text-fill: -fx-ruby-error;" wrapText="true" maxWidth="450.0"/>
+        </VBox>
+    </graphic>
+
     <buttonTypes>
-        <ButtonType fx:id="saveButtonType" text="Save" buttonData="OK_DONE"/>
+        <ButtonType fx:id="saveButtonType" text="Save Product" buttonData="OK_DONE"/>
         <ButtonType text="Cancel" buttonData="CANCEL_CLOSE"/>
     </buttonTypes>
-    <graphic>
-        <Label fx:id="validationErrorLabel" style="-fx-text-fill: red;" wrapText="true"/>
-    </graphic>
 </DialogPane>

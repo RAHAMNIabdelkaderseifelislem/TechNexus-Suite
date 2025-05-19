@@ -1,69 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressIndicator?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?> <!-- For direct font use, though CSS is preferred -->
 
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.yourstore.app.frontend.controller.ProductListViewController"
-            prefHeight="600.0" prefWidth="1000.0">
+            styleClass="main-content-area"> <!-- Apply main content area style -->
+
     <top>
-        <VBox spacing="10" BorderPane.alignment="CENTER">
-            <padding>
-                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-            </padding>
-            <HBox alignment="CENTER_LEFT" spacing="10">
-                <Button fx:id="homeButton" text="Home" onAction="#handleGoHome"/> <!-- NEW BUTTON -->
-                <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Manage Products"/>
-            </HBox>
-            <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 0 0 10 0;">
-                <Label text="Search:"/>
-                <TextField fx:id="searchProductField" promptText="Search by Name, Category, Supplier..." HBox.hgrow="ALWAYS"/>
-            </HBox>
+        <VBox spacing="15.0">
+            <padding><Insets bottom="15.0" left="5.0" right="5.0" top="5.0"/></padding> <!-- Adjusted padding -->
+            <Label text="Manage Products" styleClass="h2"/> <!-- Use heading style class -->
+
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Button fx:id="addProductButton" mnemonicParsing="false" onAction="#handleAddProduct" text="Add Product"/>
-                <Button fx:id="editProductButton" mnemonicParsing="false" onAction="#handleEditProduct" text="Edit Selected" disable="true"/>
-                <Button fx:id="deleteProductButton" mnemonicParsing="false" onAction="#handleDeleteProduct" text="Delete Selected" disable="true"/>
-                <Button fx:id="exportProductsCsvButton" onAction="#handleExportProductsToCsv" text="Export to CSV"/>
-                <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefreshProducts" text="Refresh"/>
-                 <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="25.0" prefWidth="25.0"/>
+                <Label text="Search:" style="-fx-padding: 0 5px 0 0;"/>
+                <TextField fx:id="searchProductField" promptText="Filter by Name, Category, Supplier..." HBox.hgrow="ALWAYS"/>
+            </HBox>
+            
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Button fx:id="addProductButton" text="Add New Product" onAction="#handleAddProduct" styleClass="button-primary"/>
+                <Button fx:id="editProductButton" text="Edit Selected" onAction="#handleEditProduct" styleClass="button-secondary" disable="true"/>
+                <Button fx:id="deleteProductButton" text="Delete Selected" onAction="#handleDeleteProduct" styleClass="button-danger" disable="true"/>
+                <Pane HBox.hgrow="ALWAYS"/> <!-- Spacer -->
+                <Button fx:id="refreshButton" text="Refresh" onAction="#handleRefreshProducts" styleClass="button-secondary"/>
+                <Button fx:id="exportProductsCsvButton" text="Export CSV" onAction="#handleExportProductsToCsv" styleClass="button-secondary"/>
+            </HBox>
+             <HBox alignment="CENTER_LEFT" spacing="5" style="-fx-padding: 5 0 0 0;">
+                <Label fx:id="statusLabel" style="-fx-font-size: -fx-font-size-small; -fx-text-fill: -fx-medium-gray-text;"/>
+                <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="20.0" prefWidth="20.0"/>
             </HBox>
         </VBox>
     </top>
+
     <center>
         <TableView fx:id="productTableView" BorderPane.alignment="CENTER">
             <columns>
-                <TableColumn fx:id="idColumn" prefWidth="50.0" text="ID"/>
-                <TableColumn fx:id="nameColumn" prefWidth="200.0" text="Name"/>
-                <TableColumn fx:id="categoryColumn" prefWidth="120.0" text="Category"/>
-                <TableColumn fx:id="descriptionColumn" prefWidth="250.0" text="Description"/>
-                <TableColumn fx:id="supplierColumn" prefWidth="120.0" text="Supplier"/>
-                <TableColumn fx:id="purchasePriceColumn" prefWidth="100.0" text="Purchase Price"/>
-                <TableColumn fx:id="sellingPriceColumn" prefWidth="100.0" text="Selling Price"/>
-                <TableColumn fx:id="quantityColumn" prefWidth="80.0" text="Stock Qty"/>
+                <TableColumn fx:id="idColumn" prefWidth="60.0" text="ID"/>
+                <TableColumn fx:id="nameColumn" prefWidth="220.0" text="Name"/>
+                <TableColumn fx:id="categoryColumn" prefWidth="130.0" text="Category"/>
+                <TableColumn fx:id="sellingPriceColumn" prefWidth="100.0" text="Sell Price" styleClass="numeric-column"/>
+                <TableColumn fx:id="quantityColumn" prefWidth="100.0" text="Stock Qty" styleClass="centered-column"/> <!-- Cell factory will style text -->
+                <TableColumn fx:id="supplierColumn" prefWidth="150.0" text="Supplier"/>
+                <!-- Description column might be too wide for default view, consider removing or shortening -->
+                <!-- <TableColumn fx:id="descriptionColumn" prefWidth="250.0" text="Description"/> -->
+                <TableColumn fx:id="purchasePriceColumn" prefWidth="100.0" text="Cost Price" styleClass="numeric-column"/>
                 <TableColumn fx:id="createdAtColumn" prefWidth="150.0" text="Created At"/>
-                <TableColumn fx:id="updatedAtColumn" prefWidth="150.0" text="Updated At"/>
+                <!-- <TableColumn fx:id="updatedAtColumn" prefWidth="150.0" text="Updated At"/> -->
             </columns>
-            <BorderPane.margin>
-                <Insets bottom="10.0" left="10.0" right="10.0" top="5.0"/>
-            </BorderPane.margin>
-            <columnResizePolicy>
-              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-            </columnResizePolicy>
+            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
         </TableView>
     </center>
-    <bottom>
-        <Label fx:id="statusLabel" BorderPane.alignment="CENTER_LEFT">
-            <padding>
-                <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
-            </padding>
-        </Label>
-    </bottom>
+    <!-- Bottom statusLabel and progressIndicator moved to top VBox for better layout -->
 </BorderPane>

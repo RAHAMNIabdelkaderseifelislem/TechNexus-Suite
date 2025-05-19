@@ -251,7 +251,7 @@ public class MainViewController {
     }
 
     // --- Menu & Side Navigation Action Handlers ---
-    @FXML private void handleShowDashboard() { 
+    @FXML public void handleShowDashboard() { 
         loadCenterView("/fxml/DashboardView.fxml"); 
         selectSideNavButtonByText("DASHBOARD");
     }
