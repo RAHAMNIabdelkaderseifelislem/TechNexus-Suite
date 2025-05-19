@@ -2,16 +2,31 @@ package com.yourstore.app.frontend.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourstore.app.frontend.util.StageManager; // Import StageManager for alerts
+import com.yourstore.app.backend.model.dto.ProductDto;
+import com.yourstore.app.backend.model.dto.RepairJobDto;
+import com.yourstore.app.backend.model.dto.SaleDto;
+import com.yourstore.app.backend.model.enums.RepairStatus;
+import com.yourstore.app.frontend.util.StageManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Button; // Added for refreshButton
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.OverrunStyle;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,52 +35,61 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-// import java.math.BigDecimal; // Not directly needed for parsing Number
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.NumberFormat; // For currency formatting
-import java.util.Locale; // For currency formatting
+import java.text.NumberFormat;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Component
 public class DashboardViewController {
+
     private static final Logger logger = LoggerFactory.getLogger(DashboardViewController.class);
 
-    // Metric Card Labels
+    // --- FXML Injected Fields ---
+    // Metric Card Labels & Containers
     @FXML private Label todaysSalesLabel;
-    @FXML private Label totalProductsLabel; // Was already there
+    @FXML private Label totalProductsLabel;
     @FXML private Label pendingRepairsLabel;
-    @FXML private Label lowStockItemsLabel; // New label for the card
+    @FXML private Label lowStockItemsLabel;
 
-    // Metric Card VBoxes (for applying accent styles)
     @FXML private VBox todaysSalesCard;
-    @FXML private VBox productsInStockCard; // Renamed from totalProductsCard for clarity
+    @FXML private VBox productsInStockCard;
     @FXML private VBox pendingRepairsCard;
     @FXML private VBox lowStockItemsCard;
 
-    // Chart (as before)
-    @FXML private BarChart<String, Number> salesByCategoryChart; // Or rename to weeklySalesChart
-    @FXML private CategoryAxis categoryAxis;
-    @FXML private NumberAxis salesCountAxis; // Or rename to salesAmountAxis
+    // Chart
+    @FXML private BarChart<String, Number> weeklySalesChart;
+    @FXML private CategoryAxis dayAxis; // X-axis for weekly sales chart
+    @FXML private NumberAxis salesAmountAxis; // Y-axis for weekly sales chart
 
-    // Placeholder VBoxes
-    @FXML private VBox latestRepairsPlaceholder;
-    @FXML private VBox recentSalesPlaceholder;
-    @FXML private VBox lowStockAlertsPlaceholder;
+    // Dynamic List Containers
+    @FXML private VBox latestRepairsVBox;
+    @FXML private VBox recentSalesVBox;
+    @FXML private VBox lowStockAlertsVBox;
 
+    // Refresh Button
+    @FXML private Button refreshButton;
 
+    // --- Services, Utilities, and Configuration ---
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final StageManager stageManager;
-    private final ConfigurableApplicationContext springContext; // For accessing MainViewController
+    private final ConfigurableApplicationContext springContext;
 
     @Value("${server.port:8080}")
     private String serverPort;
     private String getDashboardBaseUrl() { return "http://localhost:" + serverPort + "/api/v1/dashboard"; }
 
-    private final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("en", "US"));
+    // --- Formatters ---
+    private final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("en", "US")); // Example: US Dollar
+    private final DateTimeFormatter shortDateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM);
+    // private final DateTimeFormatter shortTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT); // Not used yet
 
     @Autowired
     public DashboardViewController(HttpClient httpClient, ObjectMapper objectMapper, StageManager stageManager, ConfigurableApplicationContext springContext) {
@@ -78,109 +102,181 @@ public class DashboardViewController {
     @FXML
     public void initialize() {
         logger.info("Initializing DashboardViewController.");
-        // Initial chart setup (axis labels etc. can be set here if not in FXML)
-        // categoryAxis.setLabel("Day of Week"); // Or Product Category for the current chart
-        // salesCountAxis.setLabel("Sales Amount");
+        if (dayAxis != null) dayAxis.setLabel("Day of Week"); // Set axis labels if not set in FXML
+        if (salesAmountAxis != null) salesAmountAxis.setLabel("Sales Amount (" + currencyFormatter.getCurrency().getSymbol() + ")");
+        
         loadDashboardMetrics();
     }
 
     @FXML
     private void loadDashboardMetrics() {
         logger.info("Loading dashboard metrics...");
-        setMetricsLoadingState();
-        salesByCategoryChart.getData().clear();
+        setMetricsLoadingState(true); // Show loading state
+        if (weeklySalesChart != null) weeklySalesChart.getData().clear();
+        if (latestRepairsVBox != null) latestRepairsVBox.getChildren().clear();
+        if (recentSalesVBox != null) recentSalesVBox.getChildren().clear();
+        if (lowStockAlertsVBox != null) lowStockAlertsVBox.getChildren().clear();
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(getDashboardBaseUrl() + "/metrics"))
                 .GET().build();
 
         httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-            .thenAcceptAsync(response -> Platform.runLater(() -> {
+            .thenAcceptAsync(response -> Platform.runLater(() -> { // Ensure UI updates are on JavaFX Application Thread
+                setMetricsLoadingState(false); // Hide loading state once response is processed
                 if (response.statusCode() == 200) {
                     try {
                         Map<String, Object> metrics = objectMapper.readValue(response.body(), new TypeReference<>() {});
                         logger.debug("Dashboard metrics received: {}", metrics);
 
-                        // Populate Metric Cards
-                        Object todaysSalesObj = metrics.get("todaysSalesRevenue");
-                        if (todaysSalesCard != null) {
-                            todaysSalesCard.getStyleClass().removeAll("dashboard-card-accent-teal");
-                            if (todaysSalesObj instanceof Number) {
-                                double revenue = ((Number) todaysSalesObj).doubleValue();
-                                todaysSalesLabel.setText(currencyFormatter.format(revenue));
-                                if (revenue > 0) todaysSalesCard.getStyleClass().add("dashboard-card-accent-teal");
-                            } else {
-                                todaysSalesLabel.setText(todaysSalesObj != null ? todaysSalesObj.toString() : "0.00 DA");
-                            }
-                        }
-
-                        totalProductsLabel.setText(metrics.getOrDefault("totalProducts", "0").toString());
-
-                        Object pendingRepairsObj = metrics.get("pendingRepairsCount");
-                        if (pendingRepairsCard != null) {
-                            pendingRepairsCard.getStyleClass().removeAll("dashboard-card-accent-amber");
-                            String pendingText = (pendingRepairsObj != null) ? pendingRepairsObj.toString() : "0";
-                            pendingRepairsLabel.setText(pendingText);
-                            if (pendingRepairsObj instanceof Number && ((Number)pendingRepairsObj).intValue() > 0) {
-                                pendingRepairsCard.getStyleClass().add("dashboard-card-accent-amber");
-                            }
-                        }
-                        
-                        Object lowStockObj = metrics.get("lowStockItemsCount");
-                        if (lowStockItemsCard != null) {
-                            lowStockItemsCard.getStyleClass().removeAll("dashboard-card-accent-ruby");
-                            String lowStockText = (lowStockObj != null) ? lowStockObj.toString() : "0";
-                            lowStockItemsLabel.setText(lowStockText);
-                            if (lowStockObj instanceof Number && ((Number)lowStockObj).intValue() > 0) {
-                                lowStockItemsCard.getStyleClass().add("dashboard-card-accent-ruby");
-                            }
-                        }
-
-                        // Populate "Weekly Sales" Chart (currently sales by category)
-                        // TODO: Change backend to provide actual weekly sales data for this chart
-                        if (metrics.get("salesByCategory") instanceof Map) {
-                            @SuppressWarnings("unchecked")
-                            Map<String, Number> salesCatData = (Map<String, Number>) metrics.get("salesByCategory");
-                            XYChart.Series<String, Number> series = new XYChart.Series<>();
-                            series.setName("Sales Count"); // Or "Sales Amount" if data changes
-                            if (salesCatData.isEmpty()) {
-                                logger.info("No sales by category data for chart.");
-                            } else {
-                                salesCatData.forEach((category, count) -> series.getData().add(new XYChart.Data<>(category, count)));
-                            }
-                            salesByCategoryChart.getData().setAll(series);
-                        } else {
-                             logger.warn("Sales by category data not found or in unexpected format for chart.");
-                             salesByCategoryChart.getData().clear();
-                        }
+                        populateMetricCards(metrics);
+                        populateWeeklySalesChart(metrics);
+                        populateLatestRepairs(metrics);
+                        populateRecentSales(metrics);
+                        populateLowStockAlerts(metrics);
 
                     } catch (IOException e) {
                         logger.error("Failed to parse dashboard metrics: {}", e.getMessage(), e);
-                        showErrorUIState("Failed to parse dashboard data.");
+                        showErrorUIState("Error: Could not parse dashboard data from server.");
                     }
                 } else {
-                    logger.error("Failed to load dashboard metrics. Status: {}", response.statusCode());
-                    showErrorUIState("Server error loading dashboard (Status: " + response.statusCode() + ")");
+                    logger.error("Failed to load dashboard metrics. Server Status: {}", response.statusCode());
+                    showErrorUIState("Error: Could not load dashboard data (Server Status: " + response.statusCode() + ")");
                 }
             }))
             .exceptionally(ex -> {
                 Platform.runLater(() -> {
-                    logger.error("Exception fetching dashboard metrics: {}", ex.getMessage(), ex);
-                    showErrorUIState("Network error fetching dashboard data.");
+                    setMetricsLoadingState(false);
+                    logger.error("Exception while fetching dashboard metrics: {}", ex.getMessage(), ex);
+                    Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                    showErrorUIState("Error: Could not connect to server or an unexpected error occurred (" + cause.getMessage() + ")");
                 });
                 return null;
             });
     }
     
-    private void setMetricsLoadingState() {
-        todaysSalesLabel.setText("Loading...");
-        totalProductsLabel.setText("Loading...");
-        pendingRepairsLabel.setText("Loading...");
-        lowStockItemsLabel.setText("Loading...");
+    private void populateMetricCards(Map<String, Object> metrics) {
+        // Today's Sales
+        Object todaysSalesObj = metrics.get("todaysSalesRevenue");
+        if (todaysSalesCard != null && todaysSalesLabel != null) {
+            todaysSalesCard.getStyleClass().removeAll("dashboard-card-accent-teal");
+            if (todaysSalesObj instanceof Number) {
+                double revenue = ((Number) todaysSalesObj).doubleValue();
+                todaysSalesLabel.setText(currencyFormatter.format(revenue));
+                if (revenue > 0) todaysSalesCard.getStyleClass().add("dashboard-card-accent-teal");
+            } else {
+                todaysSalesLabel.setText(todaysSalesObj != null ? todaysSalesObj.toString() : currencyFormatter.format(0));
+            }
+        }
+        // Products in Stock
+        if (totalProductsLabel != null) totalProductsLabel.setText(metrics.getOrDefault("totalProducts", "0").toString());
 
+        // Pending Repairs
+        Object pendingRepairsObj = metrics.get("pendingRepairsCount");
+        if (pendingRepairsCard != null && pendingRepairsLabel != null) {
+            pendingRepairsCard.getStyleClass().removeAll("dashboard-card-accent-amber", "dashboard-card-accent-ruby");
+            String pendingText = (pendingRepairsObj != null) ? pendingRepairsObj.toString() : "0";
+            pendingRepairsLabel.setText(pendingText);
+            if (pendingRepairsObj instanceof Number) {
+                int count = ((Number)pendingRepairsObj).intValue();
+                if (count > 10) pendingRepairsCard.getStyleClass().add("dashboard-card-accent-ruby"); // Example thresholds
+                else if (count > 0) pendingRepairsCard.getStyleClass().add("dashboard-card-accent-amber");
+            }
+        }
+        
+        // Low Stock Items
+        Object lowStockObj = metrics.get("lowStockItemsCount");
+        if (lowStockItemsCard != null && lowStockItemsLabel != null) {
+            lowStockItemsCard.getStyleClass().removeAll("dashboard-card-accent-ruby");
+            String lowStockText = (lowStockObj != null) ? lowStockObj.toString() : "0";
+            lowStockItemsLabel.setText(lowStockText);
+            if (lowStockObj instanceof Number && ((Number)lowStockObj).intValue() > 0) {
+                lowStockItemsCard.getStyleClass().add("dashboard-card-accent-ruby");
+            }
+        }
+    }
+
+    private void populateWeeklySalesChart(Map<String, Object> metrics) {
+        if (weeklySalesChart != null && metrics.get("weeklySalesChartData") instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Number> weeklyData = (Map<String, Number>) metrics.get("weeklySalesChartData");
+            XYChart.Series<String, Number> series = new XYChart.Series<>();
+            series.setName("Sales Amount");
+            
+            if (weeklyData.isEmpty()) {
+                logger.info("No weekly sales data for chart.");
+                // Optionally add a placeholder data point or text to chart
+            } else {
+                // Assuming service returns data ordered by day or keys are sortable day names
+                weeklyData.forEach((day, amount) -> {
+                    series.getData().add(new XYChart.Data<>(day, amount.doubleValue())); // Ensure it's double for NumberAxis
+                });
+            }
+            weeklySalesChart.getData().setAll(series);
+        } else if (weeklySalesChart != null) {
+            weeklySalesChart.getData().clear();
+            logger.warn("Weekly sales chart data not found or in unexpected map format.");
+        }
+    }
+
+    private void populateLatestRepairs(Map<String, Object> metrics) {
+        if (latestRepairsVBox != null && metrics.get("latestRepairJobs") != null) {
+            List<RepairJobDto> repairDtos = objectMapper.convertValue(metrics.get("latestRepairJobs"), new TypeReference<List<RepairJobDto>>() {});
+            latestRepairsVBox.getChildren().clear();
+            if (repairDtos.isEmpty()) {
+                latestRepairsVBox.getChildren().add(new Label("No pending repair jobs to display."));
+            } else {
+                repairDtos.forEach(job -> latestRepairsVBox.getChildren().add(createRepairJobEntryNode(job)));
+            }
+        } else if (latestRepairsVBox != null) {
+            latestRepairsVBox.getChildren().clear();
+            latestRepairsVBox.getChildren().add(new Label("Repair data unavailable."));
+        }
+    }
+
+    private void populateRecentSales(Map<String, Object> metrics) {
+        if (recentSalesVBox != null && metrics.get("recentSales") != null) {
+            List<SaleDto> salesDtos = objectMapper.convertValue(metrics.get("recentSales"), new TypeReference<List<SaleDto>>() {});
+            recentSalesVBox.getChildren().clear();
+            if (salesDtos.isEmpty()) {
+                recentSalesVBox.getChildren().add(new Label("No recent sales to display."));
+            } else {
+                salesDtos.forEach(sale -> recentSalesVBox.getChildren().add(createSaleEntryNode(sale)));
+            }
+        } else if (recentSalesVBox != null) {
+            recentSalesVBox.getChildren().clear();
+            recentSalesVBox.getChildren().add(new Label("Recent sales data unavailable."));
+        }
+    }
+
+    private void populateLowStockAlerts(Map<String, Object> metrics) {
+        if (lowStockAlertsVBox != null && metrics.get("lowStockAlerts") != null) {
+            List<ProductDto> lowStockProducts = objectMapper.convertValue(metrics.get("lowStockAlerts"), new TypeReference<List<ProductDto>>() {});
+            Integer threshold = (Integer) metrics.getOrDefault("lowStockThreshold", 5); // Get threshold from backend
+            lowStockAlertsVBox.getChildren().clear();
+            if (lowStockProducts.isEmpty()) {
+                lowStockAlertsVBox.getChildren().add(new Label("All products above stock threshold (" + threshold + ")."));
+            } else {
+                lowStockProducts.forEach(prod -> lowStockAlertsVBox.getChildren().add(createLowStockEntryNode(prod, threshold)));
+            }
+        } else if (lowStockAlertsVBox != null) {
+            lowStockAlertsVBox.getChildren().clear();
+            lowStockAlertsVBox.getChildren().add(new Label("Low stock data unavailable."));
+        }
+    }
+    
+    private void setMetricsLoadingState(boolean isLoading) {
+        if (isLoading) {
+            todaysSalesLabel.setText("Loading...");
+            totalProductsLabel.setText("Loading...");
+            pendingRepairsLabel.setText("Loading...");
+            lowStockItemsLabel.setText("Loading...");
+        }
         if (todaysSalesCard != null) todaysSalesCard.getStyleClass().removeAll("dashboard-card-accent-teal");
-        if (pendingRepairsCard != null) pendingRepairsCard.getStyleClass().removeAll("dashboard-card-accent-amber");
+        if (pendingRepairsCard != null) pendingRepairsCard.getStyleClass().removeAll("dashboard-card-accent-amber", "dashboard-card-accent-ruby");
         if (lowStockItemsCard != null) lowStockItemsCard.getStyleClass().removeAll("dashboard-card-accent-ruby");
+        
+        if (refreshButton != null) refreshButton.setDisable(isLoading);
     }
     
     private void showErrorUIState(String message) {
@@ -188,18 +284,134 @@ public class DashboardViewController {
         totalProductsLabel.setText("Error");
         pendingRepairsLabel.setText("Error");
         lowStockItemsLabel.setText("Error");
-        salesByCategoryChart.getData().clear();
+        if (weeklySalesChart != null) weeklySalesChart.getData().clear();
+        if (latestRepairsVBox != null) latestRepairsVBox.getChildren().setAll(new Label("Error loading data."));
+        if (recentSalesVBox != null) recentSalesVBox.getChildren().setAll(new Label("Error loading data."));
+        if (lowStockAlertsVBox != null) lowStockAlertsVBox.getChildren().setAll(new Label("Error loading data."));
         stageManager.showErrorAlert("Dashboard Error", message);
     }
 
-    // --- Navigation Handlers for Hyperlinks ---
+    // Helper methods to create UI nodes for lists
+    private Node createRepairJobEntryNode(RepairJobDto job) {
+        VBox entry = new VBox(2); // Reduced spacing
+        entry.getStyleClass().add("dashboard-list-entry");
+        entry.setCursor(Cursor.HAND);
+        entry.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                logger.debug("Navigating to edit repair job ID: {}", job.getId());
+                RepairJobEditViewController.setJobToEdit(job);
+                springContext.getBean(MainViewController.class).loadCenterView("/fxml/RepairJobEditView.fxml");
+            }
+        });
+
+        HBox titleLine = new HBox(5);
+        titleLine.setAlignment(Pos.CENTER_LEFT);
+        Circle statusDot = new Circle(6, getRepairStatusColor(job.getStatus()));
+        Text customerText = new Text(job.getCustomerName() != null ? job.getCustomerName() : "N/A");
+        customerText.setStyle("-fx-font-weight: bold; -fx-fill: -fx-dark-gray-text;");
+        Label idLabel = new Label(" (R-" + job.getId() + ")");
+        idLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: -fx-medium-gray-text;");
+        titleLine.getChildren().addAll(statusDot, customerText, idLabel);
+
+        String itemDesc = (job.getItemBrand() != null ? job.getItemBrand() : "") + " " + (job.getItemModel() != null ? job.getItemModel() : job.getItemType());
+        Text itemIssueText = new Text(itemDesc.trim() + ": " + (job.getReportedIssue().length() > 50 ? job.getReportedIssue().substring(0, 47) + "..." : job.getReportedIssue()));
+        itemIssueText.setWrappingWidth(200); // Max width for item/issue line
+        itemIssueText.setStyle("-fx-font-size: -fx-font-size-small; -fx-fill: -fx-medium-gray-text;");
+        
+        entry.getChildren().addAll(titleLine, itemIssueText);
+        return entry;
+    }
+
+    private Color getRepairStatusColor(RepairStatus status) {
+        if (status == null) return Color.web("#CCCCCC"); // Neutral gray for null
+        switch (status) {
+            case PENDING_ASSESSMENT:
+            case WAITING_FOR_PARTS:
+            case ASSESSED_WAITING_APPROVAL: // Added this based on RepairStatus enum
+                return Color.web("#F59E0B"); // -fx-amber-warning
+
+            case IN_PROGRESS:
+                return Color.web("#2563EB"); // -fx-primary-blue
+
+            case READY_FOR_PICKUP:
+                return Color.web("#0D9488"); // -fx-teal-success
+                
+            case COMPLETED_PAID:
+            case COMPLETED_UNPAID:
+                return Color.GREEN; // Or use -fx-teal-success if preferred
+
+            case CANCELLED_BY_CUSTOMER:
+            case CANCELLED_BY_STORE:
+            case UNREPAIRABLE:
+                return Color.web("#E11D48"); // -fx-ruby-error
+                
+            default:
+                return Color.LIGHTGRAY; // Fallback for any other status
+        }
+    }
+
+    private Node createSaleEntryNode(SaleDto sale) {
+        HBox entry = new HBox(10);
+        entry.setPadding(new Insets(4,0,4,0));
+        entry.getStyleClass().add("dashboard-list-entry-simple");
+        entry.setCursor(Cursor.HAND);
+        entry.setOnMouseClicked(event -> {
+            // TODO: Navigate to Sale Detail View if one exists
+            stageManager.showInfoAlert("Sale Details", "Viewing details for Sale ID: " + sale.getId() + " (Not Implemented).");
+        });
+
+        Label idLabel = new Label("S-" + sale.getId());
+        idLabel.setMinWidth(60);
+        Label customerLabel = new Label(sale.getCustomerName() != null && !sale.getCustomerName().isEmpty() ? sale.getCustomerName() : "Walk-in Customer");
+        customerLabel.setPrefWidth(150); customerLabel.setMaxWidth(150); customerLabel.setWrapText(false); customerLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+        Label amountLabel = new Label(currencyFormatter.format(sale.getTotalAmount()));
+        amountLabel.setStyle("-fx-font-weight: bold;");
+        amountLabel.setMinWidth(80); amountLabel.setAlignment(Pos.CENTER_RIGHT);
+        Label dateLabel = new Label(sale.getSaleDate() != null ? sale.getSaleDate().format(shortDateFormatter) : "N/A");
+        dateLabel.setMinWidth(100);
+        entry.getChildren().addAll(idLabel, customerLabel, amountLabel, dateLabel);
+        return entry;
+    }
+
+    private Node createLowStockEntryNode(ProductDto product, int threshold) {
+        HBox entry = new HBox(10);
+        entry.setPadding(new Insets(4,0,4,0));
+        entry.getStyleClass().add("dashboard-list-entry-simple");
+
+        Label productName = new Label(product.getName());
+        productName.setPrefWidth(180); productName.setMaxWidth(180); productName.setWrapText(false); productName.setTextOverrun(OverrunStyle.ELLIPSIS);
+        
+        Label stockLabel = new Label("Stock: " + product.getQuantityInStock() + " (Thr: " + threshold + ")");
+        stockLabel.setMinWidth(100);
+        if (product.getQuantityInStock() <= threshold) {
+            stockLabel.setStyle("-fx-text-fill: -fx-ruby-error; -fx-font-weight: bold;");
+        } else if (product.getQuantityInStock() <= threshold + 5) { // Example: nearing low stock
+            stockLabel.setStyle("-fx-text-fill: -fx-amber-warning;");
+        }
+        
+        Button orderButton = new Button("Order");
+        orderButton.getStyleClass().add("button-secondary");
+        orderButton.setPadding(new Insets(2,8,2,8)); // Smaller padding
+        orderButton.setOnAction(e -> {
+            logger.info("Order button clicked for product: {}", product.getName());
+            stageManager.showInfoAlert("Order Stock", "Ordering " + product.getName() + " (Action not fully implemented).");
+            // Potentially navigate to New Purchase view with this product pre-selected
+        });
+        entry.getChildren().addAll(productName, stockLabel, orderButton);
+        return entry;
+    }
+
+    // --- Navigation Handlers for Hyperlinks in Dashboard ---
     @FXML private void navigateToViewRepairs() {
-        springContext.getBean(MainViewController.class).loadCenterView("/fxml/RepairsListView.fxml");
+        logger.debug("Navigating to View Repairs from dashboard hyperlink.");
+        springContext.getBean(MainViewController.class).handleViewRepairs();
     }
     @FXML private void navigateToViewSales() {
-        springContext.getBean(MainViewController.class).loadCenterView("/fxml/SalesListView.fxml");
+        logger.debug("Navigating to View Sales from dashboard hyperlink.");
+        springContext.getBean(MainViewController.class).handleViewSales();
     }
-    @FXML private void navigateToProducts() { // For "Order Stock" or "View All Products"
-        springContext.getBean(MainViewController.class).loadCenterView("/fxml/ProductListView.fxml");
+    @FXML private void navigateToProducts() { 
+        logger.debug("Navigating to Products from dashboard hyperlink.");
+        springContext.getBean(MainViewController.class).handleManageProducts();
     }
 }

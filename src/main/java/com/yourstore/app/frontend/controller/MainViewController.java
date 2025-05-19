@@ -255,27 +255,27 @@ public class MainViewController {
         loadCenterView("/fxml/DashboardView.fxml"); 
         selectSideNavButtonByText("DASHBOARD");
     }
-    @FXML private void handleManageProducts() { 
+    @FXML public void handleManageProducts() { 
         loadCenterView("/fxml/ProductListView.fxml"); 
         selectSideNavButtonByText("PRODUCTS");
     }
-    @FXML private void handleNewSaleInMain() { 
+    @FXML public void handleNewSaleInMain() { 
         loadCenterView("/fxml/NewSaleView.fxml"); 
         selectSideNavButtonByText("NEW SALE");
     }
-    @FXML private void handleViewSales() { 
+    @FXML public void handleViewSales() { 
         loadCenterView("/fxml/SalesListView.fxml"); 
         selectSideNavButtonByText("SALES RECORDS");
     }
-    @FXML private void handleNewPurchaseInMain() { 
+    @FXML public void handleNewPurchaseInMain() { 
         loadCenterView("/fxml/NewPurchaseView.fxml"); 
         selectSideNavButtonByText("NEW PURCHASE");
     }
-    @FXML private void handleViewPurchases() { 
+    @FXML public void handleViewPurchases() { 
         loadCenterView("/fxml/PurchasesListView.fxml"); 
         selectSideNavButtonByText("PURCHASE RECORDS");
     }
-    @FXML private void handleViewRepairs() { 
+    @FXML public void handleViewRepairs() { 
         loadCenterView("/fxml/RepairsListView.fxml"); 
         selectSideNavButtonByText("REPAIRS");
     }
