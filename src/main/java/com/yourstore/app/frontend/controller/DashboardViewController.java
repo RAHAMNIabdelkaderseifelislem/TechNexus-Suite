@@ -87,7 +87,7 @@ public class DashboardViewController {
     private String getDashboardBaseUrl() { return "http://localhost:" + serverPort + "/api/v1/dashboard"; }
 
     // --- Formatters ---
-    private final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("en", "US")); // Example: US Dollar
+    private final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("fr", "DZ")); // Algerian Dinar
     private final DateTimeFormatter shortDateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM);
     // private final DateTimeFormatter shortTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT); // Not used yet
 

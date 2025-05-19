@@ -59,7 +59,7 @@ public class NewPurchaseViewController {
     private final ObservableList<ProductDto> availableProducts = FXCollections.observableArrayList();
     private final ObservableList<PurchaseItemDto> currentPurchaseItems = FXCollections.observableArrayList();
     private BigDecimal currentTotalAmount = BigDecimal.ZERO;
-    private final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("en", "US"));
+    private final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("fr", "DZ")); // Algerian Dinar
 
 
     @Autowired

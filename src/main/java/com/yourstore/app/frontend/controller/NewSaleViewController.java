@@ -56,7 +56,7 @@ public class NewSaleViewController {
     private final ObservableList<ProductDto> availableProducts = FXCollections.observableArrayList();
     private final ObservableList<SaleItemDto> currentSaleItems = FXCollections.observableArrayList();
     private BigDecimal currentTotalAmount = BigDecimal.ZERO;
-    private final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("en", "US")); // Or your desired locale
+    private final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("fr", "DZ")); // Algerian Dinar
 
     @Autowired
     public NewSaleViewController(ProductClientService productClientService, SaleClientService saleClientService, StageManager stageManager, ConfigurableApplicationContext springContext) {
