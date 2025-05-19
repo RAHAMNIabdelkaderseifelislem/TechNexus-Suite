@@ -179,11 +179,11 @@ public class MainViewController {
     @FXML private void handleViewSales() { loadCenterView("/fxml/SalesListView.fxml"); }
     @FXML private void handleNewPurchaseInMain() { loadCenterView("/fxml/NewPurchaseView.fxml"); }
     @FXML private void handleViewPurchases() { loadCenterView("/fxml/PurchasesListView.fxml"); }
-    @FXML private void handleViewRepairs() { stageManager.showInfoAlert("Repairs", "The Repairs module will be implemented soon!"); }
-@FXML private void handleSalesReport() { stageManager.showInfoAlert("Sales Report", "Custom sales reports are coming soon!"); }
-@FXML private void handleStockReport() { stageManager.showInfoAlert("Stock Report", "Custom stock reports are coming soon!"); }
-@FXML private void handleAppSettings() { stageManager.showInfoAlert("Application Settings", "Application settings will be available in a future update."); }
-@FXML private void handleAbout() { stageManager.showInfoAlert("About Computer Store Management", "Version 1.0\nDeveloped with JavaFX and Spring Boot."); }
+    @FXML private void handleViewRepairs() { loadCenterView("/fxml/RepairsListView.fxml"); }
+    @FXML private void handleSalesReport() { stageManager.showInfoAlert("Sales Report", "Custom sales reports are coming soon!"); }
+    @FXML private void handleStockReport() { stageManager.showInfoAlert("Stock Report", "Custom stock reports are coming soon!"); }
+    @FXML private void handleAppSettings() { stageManager.showInfoAlert("Application Settings", "Application settings will be available in a future update."); }
+    @FXML private void handleAbout() { stageManager.showInfoAlert("About Computer Store Management", "Version 1.0\nDeveloped with JavaFX and Spring Boot."); }
 
 
     @FXML

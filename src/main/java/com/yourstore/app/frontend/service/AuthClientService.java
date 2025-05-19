@@ -2,6 +2,11 @@ package com.yourstore.app.frontend.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yourstore.app.backend.model.dto.UserBasicDto;
+import com.yourstore.app.frontend.util.StageManager;
+
+import javafx.application.Platform;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -26,6 +32,7 @@ public class AuthClientService {
 
     private final HttpClient httpClient; // Shared HttpClient with CookieManager
     private final ObjectMapper objectMapper;
+    private final StageManager stageManager;
 
     @Value("${server.port:8080}")
     private String serverPort;
@@ -33,11 +40,11 @@ public class AuthClientService {
     private String getBaseAppUrl() {
         return "http://localhost:" + serverPort;
     }
-
     @Autowired
-    public AuthClientService(HttpClient httpClient, ObjectMapper objectMapper) {
+    public AuthClientService(HttpClient httpClient, ObjectMapper objectMapper, StageManager stageManager) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
+        this.stageManager = stageManager;
     }
 
         // In AuthClientService.java
@@ -128,6 +135,45 @@ public class AuthClientService {
             }).exceptionally(ex -> {
                 System.err.println("Exception while fetching user details: " + ex.getMessage());
                 return null; // Or rethrow wrapped exception
+            });
+    }
+
+    public CompletableFuture<List<UserBasicDto>> getAssignableUsers() {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(getBaseAppUrl() + "/api/v1/users/assignable")) // Path as defined in UserController
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+            .thenApply(response -> { // This lambda MUST return List<UserBasicDto> or throw
+                if (response.statusCode() == 200) {
+                    try {
+                        return objectMapper.readValue(response.body(), new TypeReference<List<UserBasicDto>>() {});
+                    } catch (IOException e) {
+                        // This exception will be caught by the .exceptionally() block below
+                        throw new RuntimeException("Failed to parse assignable users list: " + e.getMessage(), e);
+                    }
+                } else {
+                    // Let an error handler (if you have a generic one like handleHttpError) show UI feedback,
+                    // then throw to be caught by .exceptionally().
+                    // For now, just throw a specific error for this case.
+                    String errorMsg = "Failed to fetch assignable users, status: " + response.statusCode();
+                    System.err.println(errorMsg + " Body: " + response.body());
+                    // Platform.runLater(() -> stageManager.showErrorAlert("Fetch Error", errorMsg)); // Or handle error display in exceptionally
+                    throw new RuntimeException(errorMsg);
+                }
+            }).exceptionally(ex -> { // Catches exceptions from sendAsync or thenApply
+                 System.err.println("Original exception in getAssignableUsers: " + ex.getMessage());
+                 ex.printStackTrace(); // Good for debugging
+
+                 Platform.runLater(() -> {
+                    // Check if an alert was already effectively shown by a specific RuntimeException message from thenApply
+                    if (!(ex instanceof RuntimeException && ex.getMessage().startsWith("Failed to fetch assignable users, status:"))) {
+                         stageManager.showErrorAlert("Operation Failed", "Could not fetch assignable users: " + ex.getMessage());
+                    }
+                 });
+                 return Collections.<UserBasicDto>emptyList(); // Return an empty list of the correct type
             });
     }
 }
