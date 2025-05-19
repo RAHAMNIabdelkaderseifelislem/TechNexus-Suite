@@ -42,6 +42,7 @@ public class RepairsListViewController {
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Label statusLabel;
     @FXML private TextField searchRepairField;
+    @FXML private Button homeButton;
 
     private final RepairClientService repairClientService;
     private final StageManager stageManager;
@@ -161,6 +162,20 @@ public class RepairsListViewController {
             openRepairJobEditView(selectedJob);
         } else {
             stageManager.showInfoAlert("No Selection", "Please select a repair job to view/edit.");
+        }
+    }
+
+    @FXML
+    private void handleGoHome() {
+        try {
+            MainViewController mainViewController = springContext.getBean(MainViewController.class);
+            mainViewController.showHomeTiles(); // Call the public method
+        } catch (Exception e) {
+            System.err.println("Error navigating to home: " + e.getMessage());
+            e.printStackTrace();
+            // stageManager.showErrorAlert("Navigation Error", "Could not return to the main dashboard.");
+            // Fallback to reloading main view if mainViewController cannot be obtained or fails
+             stageManager.showMainView();
         }
     }
 

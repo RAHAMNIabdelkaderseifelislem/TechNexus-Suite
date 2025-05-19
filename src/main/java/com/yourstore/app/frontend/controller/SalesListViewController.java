@@ -51,6 +51,7 @@ public class SalesListViewController {
     @FXML private Button refreshButton;
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Label statusLabel;
+    @FXML private Button homeButton;
 
     private final SaleClientService saleClientService;
     private final ObservableList<SaleDto> salesList = FXCollections.observableArrayList();
@@ -242,5 +243,18 @@ public class SalesListViewController {
         return stringValue;
     }
 
+    @FXML
+    private void handleGoHome() {
+        try {
+            MainViewController mainViewController = springContext.getBean(MainViewController.class);
+            mainViewController.showHomeTiles(); // Call the public method
+        } catch (Exception e) {
+            System.err.println("Error navigating to home: " + e.getMessage());
+            e.printStackTrace();
+            // stageManager.showErrorAlert("Navigation Error", "Could not return to the main dashboard.");
+            // Fallback to reloading main view if mainViewController cannot be obtained or fails
+             stageManager.showMainView();
+        }
+    }
 
 }

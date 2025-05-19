@@ -35,6 +35,7 @@ public class PurchasesListViewController {
     @FXML private Button refreshButton;
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Label statusLabel;
+    @FXML private Button homeButton;
 
     private final PurchaseClientService purchaseClientService;
     private final StageManager stageManager;
@@ -137,6 +138,20 @@ public class PurchasesListViewController {
             mainViewController.loadCenterView("/fxml/NewPurchaseView.fxml");
         } else {
             stageManager.showView("/fxml/NewPurchaseView.fxml", "New Purchase");
+        }
+    }
+
+    @FXML
+    private void handleGoHome() {
+        try {
+            MainViewController mainViewController = springContext.getBean(MainViewController.class);
+            mainViewController.showHomeTiles(); // Call the public method
+        } catch (Exception e) {
+            System.err.println("Error navigating to home: " + e.getMessage());
+            e.printStackTrace();
+            // stageManager.showErrorAlert("Navigation Error", "Could not return to the main dashboard.");
+            // Fallback to reloading main view if mainViewController cannot be obtained or fails
+             stageManager.showMainView();
         }
     }
 }

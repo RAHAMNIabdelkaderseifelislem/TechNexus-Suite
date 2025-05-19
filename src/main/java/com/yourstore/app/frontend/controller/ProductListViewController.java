@@ -53,7 +53,8 @@ public class ProductListViewController {
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Label statusLabel;
     @FXML private Button exportProductsCsvButton;
-    @FXML private TextField searchProductField; // Inject the new search field
+    @FXML private TextField searchProductField;
+    @FXML private Button homeButton;
 
     private final ProductClientService productClientService;
     private final StageManager stageManager; // To close or navigate
@@ -426,5 +427,19 @@ public class ProductListViewController {
             return "\"" + stringValue.replace("\"", "\"\"") + "\"";
         }
         return stringValue;
+    }
+
+    @FXML
+    private void handleGoHome() {
+        try {
+            MainViewController mainViewController = springContext.getBean(MainViewController.class);
+            mainViewController.showHomeTiles(); // Call the public method
+        } catch (Exception e) {
+            System.err.println("Error navigating to home: " + e.getMessage());
+            e.printStackTrace();
+            // stageManager.showErrorAlert("Navigation Error", "Could not return to the main dashboard.");
+            // Fallback to reloading main view if mainViewController cannot be obtained or fails
+             stageManager.showMainView();
+        }
     }
 }

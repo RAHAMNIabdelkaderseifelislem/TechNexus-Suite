@@ -19,7 +19,14 @@
             <padding>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
             </padding>
-            <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Manage Products"/>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Button fx:id="homeButton" text="Home" onAction="#handleGoHome"/> <!-- NEW BUTTON -->
+                <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Manage Products"/>
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 0 0 10 0;">
+                <Label text="Search:"/>
+                <TextField fx:id="searchProductField" promptText="Search by Name, Category, Supplier..." HBox.hgrow="ALWAYS"/>
+            </HBox>
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <Button fx:id="addProductButton" mnemonicParsing="false" onAction="#handleAddProduct" text="Add Product"/>
                 <Button fx:id="editProductButton" mnemonicParsing="false" onAction="#handleEditProduct" text="Edit Selected" disable="true"/>
@@ -29,10 +36,6 @@
                  <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="25.0" prefWidth="25.0"/>
             </HBox>
         </VBox>
-        <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 0 0 10 0;">
-            <Label text="Search:"/>
-            <TextField fx:id="searchProductField" promptText="Search by Name, Category, Supplier..." HBox.hgrow="ALWAYS"/>
-        </HBox>
     </top>
     <center>
         <TableView fx:id="productTableView" BorderPane.alignment="CENTER">
