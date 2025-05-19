@@ -8,6 +8,8 @@ import com.yourstore.app.frontend.util.StageManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
@@ -51,12 +53,16 @@ public class ProductListViewController {
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Label statusLabel;
     @FXML private Button exportProductsCsvButton;
+    @FXML private TextField searchProductField; // Inject the new search field
 
     private final ProductClientService productClientService;
     private final StageManager stageManager; // To close or navigate
     private final ConfigurableApplicationContext springContext; // Inject Spring context
     private final ObservableList<ProductDto> productList = FXCollections.observableArrayList();
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    private ObservableList<ProductDto> productMasterList = FXCollections.observableArrayList();
+    private FilteredList<ProductDto> filteredProductData;
 
     @Autowired
     public ProductListViewController(ProductClientService productClientService, StageManager stageManager, ConfigurableApplicationContext springContext) {
@@ -68,8 +74,45 @@ public class ProductListViewController {
     @FXML
     public void initialize() {
         setupTableColumns();
-        setupRowSelectionListener();
-        loadProducts();
+        // Do not call loadProducts() directly here if it populates productMasterList.
+        // Initialize the filtered list first, then load data.
+
+        // 1. Wrap the ObservableList in a FilteredList (initially display all data).
+        filteredProductData = new FilteredList<>(productMasterList, p -> true);
+
+        // 2. Set the filter Predicate whenever the filter changes.
+        searchProductField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredProductData.setPredicate(product -> {
+                // If filter text is empty, display all products.
+                if (newValue == null || newValue.isEmpty()) {
+                    return true;
+                }
+                String lowerCaseFilter = newValue.toLowerCase();
+
+                if (product.getName() != null && product.getName().toLowerCase().contains(lowerCaseFilter)) {
+                    return true; // Filter matches name.
+                } else if (product.getCategory() != null && product.getCategory().toString().toLowerCase().contains(lowerCaseFilter)) {
+                    return true; // Filter matches category.
+                } else if (product.getSupplier() != null && product.getSupplier().toLowerCase().contains(lowerCaseFilter)) {
+                    return true; // Filter matches supplier.
+                } else if (product.getDescription() != null && product.getDescription().toLowerCase().contains(lowerCaseFilter)) {
+                    return true; // Filter matches description
+                }
+                return false; // Does not match.
+            });
+        });
+
+        // 3. Wrap the FilteredList in a SortedList.
+        SortedList<ProductDto> sortedData = new SortedList<>(filteredProductData);
+
+        // 4. Bind the SortedList comparator to the TableView comparator.
+        sortedData.comparatorProperty().bind(productTableView.comparatorProperty());
+
+        // 5. Add sorted (and filtered) data to the table.
+        productTableView.setItems(sortedData);
+
+        setupRowSelectionListener(); // Keep this
+        loadProducts(); // Now load data into productMasterList
     }
 
     private void setupTableColumns() {
@@ -128,10 +171,10 @@ public class ProductListViewController {
     private void loadProducts() {
         showProgress(true, "Loading products...");
         productClientService.getAllProducts()
-            .thenAcceptAsync(products -> Platform.runLater(() -> { // Ensure UI updates on JavaFX thread
-                productList.setAll(products);
-                productTableView.sort(); // Re-apply sort if any
-                showProgress(false, "Products loaded successfully. Found " + products.size() + " items.");
+            .thenAcceptAsync(products -> Platform.runLater(() -> {
+                productMasterList.setAll(products); // Update the master list
+                // The FilteredList and SortedList will update the TableView automatically
+                showProgress(false, "Products loaded. Found " + productMasterList.size() + " items.");
             }))
             .exceptionally(ex -> {
                 Platform.runLater(() -> {

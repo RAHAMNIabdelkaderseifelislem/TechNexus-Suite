@@ -7,6 +7,8 @@ import com.yourstore.app.frontend.util.StageManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
@@ -40,6 +42,7 @@ public class SalesListViewController {
     @FXML private TableColumn<SaleDto, LocalDateTime> saleDateColumn;
     @FXML private TableColumn<SaleDto, String> cashierColumn;
     @FXML private TableColumn<SaleDto, String> itemsColumn; // To display item count or summary
+    @FXML private TextField searchSaleField;
 
     @FXML private Button exportButton;
     private final StageManager stageManager;
@@ -51,6 +54,8 @@ public class SalesListViewController {
 
     private final SaleClientService saleClientService;
     private final ObservableList<SaleDto> salesList = FXCollections.observableArrayList();
+    private final ObservableList<SaleDto> salesMasterList = FXCollections.observableArrayList();
+    private FilteredList<SaleDto> filteredSalesData;
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final ConfigurableApplicationContext springContext; // To get controller beans
@@ -67,6 +72,29 @@ public class SalesListViewController {
     @FXML
     public void initialize() {
         setupTableColumns();
+
+        filteredSalesData = new FilteredList<>(salesMasterList, p -> true);
+
+        searchSaleField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredSalesData.setPredicate(sale -> {
+                if (newValue == null || newValue.isEmpty()) return true;
+                String lowerCaseFilter = newValue.toLowerCase();
+
+                if (String.valueOf(sale.getId()).contains(lowerCaseFilter)) return true;
+                if (sale.getCustomerName() != null && sale.getCustomerName().toLowerCase().contains(lowerCaseFilter)) return true;
+                if (sale.getUsername() != null && sale.getUsername().toLowerCase().contains(lowerCaseFilter)) return true;
+                if (sale.getSaleDate() != null && dateTimeFormatter.format(sale.getSaleDate()).toLowerCase().contains(lowerCaseFilter)) return true;
+                // Add more fields to search if needed, e.g., total amount (convert to string)
+                if (sale.getTotalAmount() != null && sale.getTotalAmount().toPlainString().contains(lowerCaseFilter)) return true;
+                
+                return false;
+            });
+        });
+
+        SortedList<SaleDto> sortedData = new SortedList<>(filteredSalesData);
+        sortedData.comparatorProperty().bind(salesTableView.comparatorProperty());
+        salesTableView.setItems(sortedData);
+
         loadSales();
     }
 
@@ -103,8 +131,8 @@ public class SalesListViewController {
         showProgress(true, "Loading sales records...");
         saleClientService.getAllSales()
             .thenAcceptAsync(sales -> Platform.runLater(() -> {
-                salesList.setAll(sales);
-                showProgress(false, "Sales loaded. Found " + sales.size() + " records.");
+                salesMasterList.setAll(sales); // Update master list
+                showProgress(false, "Sales loaded. Found " + salesMasterList.size() + " records.");
             }))
             .exceptionally(ex -> {
                 Platform.runLater(() -> {

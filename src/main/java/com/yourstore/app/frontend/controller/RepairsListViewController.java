@@ -8,6 +8,8 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -39,11 +41,14 @@ public class RepairsListViewController {
     @FXML private Button refreshButton;
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Label statusLabel;
+    @FXML private TextField searchRepairField;
 
     private final RepairClientService repairClientService;
     private final StageManager stageManager;
     private final ConfigurableApplicationContext springContext;
     private final ObservableList<RepairJobDto> repairJobsList = FXCollections.observableArrayList();
+    private final ObservableList<RepairJobDto> repairJobsMasterList = FXCollections.observableArrayList();
+    private FilteredList<RepairJobDto> filteredRepairJobsData;
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM);
 
@@ -55,13 +60,38 @@ public class RepairsListViewController {
         this.springContext = springContext;
     }
 
-    @FXML
+     @FXML
     public void initialize() {
         setupTableColumns();
-        loadRepairJobs();
+
+        filteredRepairJobsData = new FilteredList<>(repairJobsMasterList, p -> true);
+
+        searchRepairField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredRepairJobsData.setPredicate(job -> {
+                if (newValue == null || newValue.isEmpty()) return true;
+                String lowerCaseFilter = newValue.toLowerCase();
+
+                if (String.valueOf(job.getId()).contains(lowerCaseFilter)) return true;
+                if (job.getCustomerName() != null && job.getCustomerName().toLowerCase().contains(lowerCaseFilter)) return true;
+                if (job.getItemType() != null && job.getItemType().toLowerCase().contains(lowerCaseFilter)) return true;
+                if (job.getItemBrand() != null && job.getItemBrand().toLowerCase().contains(lowerCaseFilter)) return true;
+                if (job.getItemModel() != null && job.getItemModel().toLowerCase().contains(lowerCaseFilter)) return true;
+                if (job.getReportedIssue() != null && job.getReportedIssue().toLowerCase().contains(lowerCaseFilter)) return true;
+                if (job.getStatus() != null && job.getStatus().toString().toLowerCase().contains(lowerCaseFilter)) return true;
+                if (job.getAssignedToUsername() != null && job.getAssignedToUsername().toLowerCase().contains(lowerCaseFilter)) return true;
+                
+                return false;
+            });
+        });
+
+        SortedList<RepairJobDto> sortedData = new SortedList<>(filteredRepairJobsData);
+        sortedData.comparatorProperty().bind(repairsTableView.comparatorProperty());
+        repairsTableView.setItems(sortedData);
+        
         repairsTableView.getSelectionModel().selectedItemProperty().addListener(
             (obs, oldSelection, newSelection) -> editRepairButton.setDisable(newSelection == null)
         );
+        loadRepairJobs();
     }
 
     private void setupTableColumns() {
@@ -106,8 +136,8 @@ public class RepairsListViewController {
         showProgress(true, "Loading repair jobs...");
         repairClientService.getAllRepairJobs()
             .thenAcceptAsync(jobs -> Platform.runLater(() -> {
-                repairJobsList.setAll(jobs);
-                showProgress(false, "Repair jobs loaded. Found " + jobs.size() + " records.");
+                repairJobsMasterList.setAll(jobs); // Update master list
+                showProgress(false, "Repair jobs loaded. Found " + repairJobsMasterList.size() + " records.");
             }))
             .exceptionally(ex -> {
                 Platform.runLater(() -> {

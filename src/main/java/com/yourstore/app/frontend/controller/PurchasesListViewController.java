@@ -6,6 +6,8 @@ import com.yourstore.app.frontend.util.StageManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -28,6 +30,7 @@ public class PurchasesListViewController {
     @FXML private TableColumn<PurchaseDto, LocalDateTime> purchaseDateColumn;
     @FXML private TableColumn<PurchaseDto, String> recordedByColumn;
     @FXML private TableColumn<PurchaseDto, String> itemsCountColumn;
+    @FXML private TextField searchPurchaseField;
 
     @FXML private Button refreshButton;
     @FXML private ProgressIndicator progressIndicator;
@@ -37,6 +40,8 @@ public class PurchasesListViewController {
     private final StageManager stageManager;
     private final ConfigurableApplicationContext springContext;
     private final ObservableList<PurchaseDto> purchasesList = FXCollections.observableArrayList();
+    private final ObservableList<PurchaseDto> purchasesMasterList = FXCollections.observableArrayList();
+    private FilteredList<PurchaseDto> filteredPurchasesData;
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
@@ -46,11 +51,35 @@ public class PurchasesListViewController {
         this.springContext = springContext;
     }
 
-    @FXML
+   @FXML
     public void initialize() {
         setupTableColumns();
+
+        filteredPurchasesData = new FilteredList<>(purchasesMasterList, p -> true);
+
+        searchPurchaseField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredPurchasesData.setPredicate(purchase -> {
+                if (newValue == null || newValue.isEmpty()) return true;
+                String lowerCaseFilter = newValue.toLowerCase();
+
+                if (String.valueOf(purchase.getId()).contains(lowerCaseFilter)) return true;
+                if (purchase.getSupplierName() != null && purchase.getSupplierName().toLowerCase().contains(lowerCaseFilter)) return true;
+                if (purchase.getInvoiceNumber() != null && purchase.getInvoiceNumber().toLowerCase().contains(lowerCaseFilter)) return true;
+                if (purchase.getUsername() != null && purchase.getUsername().toLowerCase().contains(lowerCaseFilter)) return true; // Recorded By
+                // Add more fields if needed
+                if (purchase.getTotalAmount() != null && purchase.getTotalAmount().toPlainString().contains(lowerCaseFilter)) return true;
+
+                return false;
+            });
+        });
+
+        SortedList<PurchaseDto> sortedData = new SortedList<>(filteredPurchasesData);
+        sortedData.comparatorProperty().bind(purchasesTableView.comparatorProperty());
+        purchasesTableView.setItems(sortedData);
+
         loadPurchases();
     }
+
 
     private void setupTableColumns() {
         purchaseIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
@@ -84,8 +113,8 @@ public class PurchasesListViewController {
         showProgress(true, "Loading purchase records...");
         purchaseClientService.getAllPurchases()
             .thenAcceptAsync(purchases -> Platform.runLater(() -> {
-                purchasesList.setAll(purchases);
-                showProgress(false, "Purchases loaded. Found " + purchases.size() + " records.");
+                purchasesMasterList.setAll(purchases); // Update master list
+                showProgress(false, "Purchases loaded. Found " + purchasesMasterList.size() + " records.");
             }))
             .exceptionally(ex -> {
                 Platform.runLater(() -> {

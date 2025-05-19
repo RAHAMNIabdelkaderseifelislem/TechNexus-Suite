@@ -20,6 +20,10 @@
                 <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="25.0" prefWidth="25.0"/>
             </HBox>
         </VBox>
+        <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 0 0 10 0;">
+            <Label text="Search:"/>
+            <TextField fx:id="searchSaleField" promptText="Search by ID, Customer, Cashier, Date..." HBox.hgrow="ALWAYS"/>
+        </HBox>
     </top>
     <center>
         <TableView fx:id="salesTableView" BorderPane.alignment="CENTER">

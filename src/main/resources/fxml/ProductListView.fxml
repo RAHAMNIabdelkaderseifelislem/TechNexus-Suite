@@ -9,6 +9,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.TextField?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.yourstore.app.frontend.controller.ProductListViewController"
@@ -28,6 +29,10 @@
                  <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="25.0" prefWidth="25.0"/>
             </HBox>
         </VBox>
+        <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 0 0 10 0;">
+            <Label text="Search:"/>
+            <TextField fx:id="searchProductField" promptText="Search by Name, Category, Supplier..." HBox.hgrow="ALWAYS"/>
+        </HBox>
     </top>
     <center>
         <TableView fx:id="productTableView" BorderPane.alignment="CENTER">
