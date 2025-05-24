@@ -41,7 +41,7 @@
                 </VBox>
             </HBox>
              <HBox spacing="15.0" alignment="CENTER" HBox.hgrow="ALWAYS" style="-fx-padding: 10 0 0 0;">
-                <VBox styleClass="dashboard-card" HBox.hgrow="ALWAYS" prefWidth="200" minHeight="180">
+                <VBox styleClass="dashboard-card" HBox.hgrow="ALWAYS" prefWidth="200" minHeight="140"> <!-- Increased height -->
                     <Label text="FINANCIALS (LAST 7 DAYS)" styleClass="metric-title"/>
                     <Label fx:id="salesLast7DaysLabel" text="Sales: 0.00 DA" styleClass="metric-value-small"/>
                     <Label fx:id="purchasesLast7DaysLabel" text="Purchases: 0.00 DA" styleClass="metric-value-small"/>

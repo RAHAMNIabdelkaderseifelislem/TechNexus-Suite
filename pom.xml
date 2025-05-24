@@ -13,14 +13,15 @@
         <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <!-- Spring Boot 2.7.18 is the last version before Spring Boot 3 which requires Java 17 -->
         <spring-boot.version>2.7.18</spring-boot.version>
-        <!-- JavaFX 17 is an LTS version compatible with Java 11 -->
         <javafx.version>17.0.11</javafx.version>
         <mysql-connector.version>8.0.33</mysql-connector.version>
-        <javafx-maven-plugin.version>0.0.8</javafx-maven-plugin.version>
-        <!-- Ensure this matches your main class for JavaFX -->
-        <javafx.main.class>com.yourstore.app.launcher.AppLauncher</javafx.main.class>
+        <javafx.plugin.version>0.0.8</javafx.plugin.version> <!-- For javafx:run -->
+        <panteleyev.jpackage.plugin.version>1.5.0</panteleyev.jpackage.plugin.version> <!-- For jpackage -->
+        <main.class>com.yourstore.app.launcher.AppLauncher</main.class>
+        <app.version>1.0.0</app.version>
+        <app.name>TechNexusSuite</app.name>
+        <app.vendor>AbdElKader Seif El Islem RAHMANI</app.vendor>
     </properties>
 
     <dependencyManagement>
@@ -57,8 +58,8 @@
 
         <!-- MySQL Connector -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
             <version>${mysql-connector.version}</version>
         </dependency>
 
@@ -77,7 +78,7 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
             <version>${javafx.version}</version>
-            <classifier>win</classifier> <!-- Add classifier for your OS -->
+            <classifier>win</classifier> <!-- Add classifier for your OS, e.g., win, linux, mac -->
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
@@ -93,42 +94,47 @@
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
-            <artifactId>javafx-web</artifactId> <!-- If using WebView, it also needs native parts -->
+            <artifactId>javafx-web</artifactId>
             <version>${javafx.version}</version>
             <classifier>win</classifier> <!-- Add classifier for your OS -->
         </dependency>
 
-        <!-- Optional: For better logging -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-        </dependency>
-
+        <!-- Jackson for JSON processing (already part of spring-boot-starter-web, but explicit for clarity) -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <!-- Version managed by Spring Boot parent -->
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <!-- For Java 8 Date/Time types like LocalDateTime -->
+            <artifactId>jackson-datatype-jsr310</artifactId> <!-- For Java 8 Date/Time types -->
         </dependency>
+
+        <!-- Apache Commons CSV for CSV export -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
-            <version>1.10.0</version> <!-- Or latest stable version -->
+            <version>1.10.0</version>
         </dependency>
 
+        <!-- Spring Boot Validation Starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <release>${java.version}</release>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -142,29 +148,74 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version> <!-- Or a more recent version -->
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <release>${java.version}</release> <!-- Important for Java 9+ -->
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
-                <version>${javafx-maven-plugin.version}</version>
+                <version>${javafx.plugin.version}</version>
                 <configuration>
-                    <mainClass>${javafx.main.class}</mainClass>
-                    <options> <!-- These are important for non-modular apps on JDK 9+ -->
-                        <option>--add-exports=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED</option>
-                        <option>--add-opens=javafx.controls/javafx.scene.control.skin=ALL-UNNAMED</option>
-                        <option>--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED</option>
-                        <option>--add-opens=javafx.graphics/javafx.scene.text=ALL-UNNAMED</option>
-                        <option>--add-opens=javafx.graphics/javafx.scene.paint=ALL-UNNAMED</option>
+                    <mainClass>${main.class}</mainClass>
+                    <options>
+                        <!-- Add any VM options needed during development run, e.g., for modules -->
+                        <!-- <option>module-path</option> -->
+                        <!-- <option>/path/to/your/javafx-sdk-${javafx.version}/lib</option> -->
+                        <!-- <option>add-modules</option> -->
+                        <!-- <option>javafx.controls,javafx.fxml,javafx.graphics,javafx.web</option> -->
                     </options>
                 </configuration>
+            </plugin>
+
+            <!-- JPACKAGE MAVEN PLUGIN (using org.panteleyev) -->
+            <plugin>
+                <groupId>org.panteleyev</groupId>
+                <artifactId>jpackage-maven-plugin</artifactId>
+                <version>${panteleyev.jpackage.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>create-installer</id>
+                        <goals>
+                            <goal>jpackage</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <name>${app.name}</name>
+                            <appVersion>${app.version}</appVersion>
+                            <vendor>${app.vendor}</vendor>
+                            <destination>target/dist</destination>
+                            <input>${project.build.directory}</input>
+                            <type>MSI</type>
+
+                            <modulePaths>
+                                <!-- Replace this with the ACTUAL path to your JavaFX JMODS directory -->
+                                <modulePath>C:/Program Files/Java/javafx-jmods-17.0.15</modulePath>
+                            </modulePaths>
+
+                            <addModules>
+                                <module>javafx.controls</module>
+                                <module>javafx.fxml</module>
+                                <module>javafx.graphics</module>
+                                <module>javafx.web</module>
+                                <module>java.sql</module>
+                                <module>java.net.http</module>
+                                <module>jdk.crypto.ec</module>
+                                <module>java.naming</module>
+                                <module>java.desktop</module>
+                                <module>jdk.unsupported</module>
+                            </addModules>
+
+                            <mainJar>${project.build.finalName}.jar</mainJar>
+                            <mainClass>${main.class}</mainClass>
+
+                            <javaOptions>
+                                <option>-Dspring.profiles.active=production</option>
+                            </javaOptions>
+
+                            <winMenu>true</winMenu>
+                            <winShortcut>true</winShortcut>
+                            <winUpgradeUuid>4e54d71e-2c07-4f74-8e78-28b1c522685c</winUpgradeUuid>
+                            <winDirChooser>true</winDirChooser>
+                            <icon>src/main/deploy/package/windows/app_icon.ico</icon>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -275,28 +275,57 @@ public class DashboardViewController {
     private void populateFinancialSummaryCards(Map<String, Object> metrics) {
         if (salesLast7DaysLabel == null) return;
 
-        // Use the helper method to safely convert to BigDecimal
-        BigDecimal salesLast7Days = getBigDecimalFromMetric(metrics, "salesLast7Days");
-        BigDecimal purchasesLast7Days = getBigDecimalFromMetric(metrics, "purchasesLast7Days");
-        BigDecimal profitLast7Days = getBigDecimalFromMetric(metrics, "profitLast7Days");
-        
-        BigDecimal salesLast30Days = getBigDecimalFromMetric(metrics, "salesLast30Days");
-        BigDecimal purchasesLast30Days = getBigDecimalFromMetric(metrics, "purchasesLast30Days");
-        BigDecimal profitLast30Days = getBigDecimalFromMetric(metrics, "profitLast30Days");
+        salesLast7DaysLabel.setText("Sales: " + currencyFormatter.format(getBigDecimalFromMetric(metrics, "salesLast7Days")));
+        purchasesLast7DaysLabel.setText("Purchases: " + currencyFormatter.format(getBigDecimalFromMetric(metrics, "purchasesLast7Days")));
+        // Optionally display repair revenue separately in the card if desired, or just include in profit
+        // For instance, you could add another Label:
+        // repairRevenueLast7DaysLabel.setText("Repairs: " + currencyFormatter.format(getBigDecimalFromMetric(metrics, "repairRevenueLast7Days")));
+        BigDecimal profit7 = getBigDecimalFromMetric(metrics, "profitLast7Days");
+        profitLast7DaysLabel.setText("Profit: " + currencyFormatter.format(profit7));
+        profitLast7DaysLabel.setStyle(profit7.compareTo(BigDecimal.ZERO) >= 0 ? "-fx-text-fill: #0D9488;" : "-fx-text-fill: #D32F2F; -fx-font-weight: bold;");
 
-        // Update 7-day labels
-        salesLast7DaysLabel.setText("Sales: " + currencyFormatter.format(salesLast7Days));
-        purchasesLast7DaysLabel.setText("Purchases: " + currencyFormatter.format(purchasesLast7Days));
-        profitLast7DaysLabel.setText("Profit: " + currencyFormatter.format(profitLast7Days));
-        profitLast7DaysLabel.setStyle(profitLast7Days.compareTo(BigDecimal.ZERO) >= 0 ? 
-            "-fx-text-fill: #0D9488;" : "-fx-text-fill: #D32F2F; -fx-font-weight: bold;"); // Green / Red
+        salesLast30DaysLabel.setText("Sales: " + currencyFormatter.format(getBigDecimalFromMetric(metrics, "salesLast30Days")));
+        purchasesLast30DaysLabel.setText("Purchases: " + currencyFormatter.format(getBigDecimalFromMetric(metrics, "purchasesLast30Days")));
+        BigDecimal profit30 = getBigDecimalFromMetric(metrics, "profitLast30Days");
+        profitLast30DaysLabel.setText("Profit: " + currencyFormatter.format(profit30));
+        profitLast30DaysLabel.setStyle(profit30.compareTo(BigDecimal.ZERO) >= 0 ? "-fx-text-fill: #0D9488;" : "-fx-text-fill: #D32F2F; -fx-font-weight: bold;");
+    }
 
-        // Update 30-day labels
-        salesLast30DaysLabel.setText("Sales: " + currencyFormatter.format(salesLast30Days));
-        purchasesLast30DaysLabel.setText("Purchases: " + currencyFormatter.format(purchasesLast30Days));
-        profitLast30DaysLabel.setText("Profit: " + currencyFormatter.format(profitLast30Days));
-        profitLast30DaysLabel.setStyle(profitLast30Days.compareTo(BigDecimal.ZERO) >= 0 ? 
-            "-fx-text-fill: #0D9488;" : "-fx-text-fill: #D32F2F; -fx-font-weight: bold;"); // Green / Red
+
+    private void populateWeeklyPerformanceChart(Map<String, Object> metrics) {
+        if (weeklyPerformanceChart != null &&
+            metrics.get("weeklySalesChartData") instanceof Map &&
+            metrics.get("weeklyPurchasesChartData") instanceof Map &&
+            metrics.get("weeklyRepairRevenueChartData") instanceof Map && // Added check
+            metrics.get("weeklyProfitChartData") instanceof Map) {
+
+            @SuppressWarnings("unchecked") Map<String, Number> salesData = (Map<String, Number>) metrics.get("weeklySalesChartData");
+            @SuppressWarnings("unchecked") Map<String, Number> purchasesData = (Map<String, Number>) metrics.get("weeklyPurchasesChartData");
+            @SuppressWarnings("unchecked") Map<String, Number> repairRevenueData = (Map<String, Number>) metrics.get("weeklyRepairRevenueChartData"); // Get new data
+            @SuppressWarnings("unchecked") Map<String, Number> profitData = (Map<String, Number>) metrics.get("weeklyProfitChartData");
+
+            XYChart.Series<String, Number> salesSeries = new XYChart.Series<>();
+            salesSeries.setName("Sales");
+            salesData.forEach((day, amount) -> salesSeries.getData().add(new XYChart.Data<>(day, amount.doubleValue())));
+
+            XYChart.Series<String, Number> purchasesSeries = new XYChart.Series<>();
+            purchasesSeries.setName("Purchases");
+            purchasesData.forEach((day, amount) -> purchasesSeries.getData().add(new XYChart.Data<>(day, amount.doubleValue())));
+
+            XYChart.Series<String, Number> repairRevenueSeries = new XYChart.Series<>(); // New series
+            repairRevenueSeries.setName("Repair Revenue");
+            repairRevenueData.forEach((day, amount) -> repairRevenueSeries.getData().add(new XYChart.Data<>(day, amount.doubleValue())));
+
+            XYChart.Series<String, Number> profitSeries = new XYChart.Series<>();
+            profitSeries.setName("Net Profit"); // Renamed for clarity
+            profitData.forEach((day, amount) -> profitSeries.getData().add(new XYChart.Data<>(day, amount.doubleValue())));
+
+            // Add all series to the chart
+            weeklyPerformanceChart.getData().setAll(salesSeries, purchasesSeries, repairRevenueSeries, profitSeries);
+        } else if (weeklyPerformanceChart != null) {
+            weeklyPerformanceChart.getData().clear();
+            logger.warn("Weekly performance chart data (one or more series) not found or in unexpected map format.");
+        }
     }
 
     private void setupLatestRepairsTable() {
@@ -354,34 +383,6 @@ public class DashboardViewController {
     }
 
 
-    private void populateWeeklyPerformanceChart(Map<String, Object> metrics) {
-        if (weeklyPerformanceChart != null && // <<< CORRECTED
-            metrics.get("weeklySalesChartData") instanceof Map &&
-            metrics.get("weeklyPurchasesChartData") instanceof Map &&
-            metrics.get("weeklyProfitChartData") instanceof Map) {
-
-            @SuppressWarnings("unchecked") Map<String, Number> salesData = (Map<String, Number>) metrics.get("weeklySalesChartData");
-            @SuppressWarnings("unchecked") Map<String, Number> purchasesData = (Map<String, Number>) metrics.get("weeklyPurchasesChartData");
-            @SuppressWarnings("unchecked") Map<String, Number> profitData = (Map<String, Number>) metrics.get("weeklyProfitChartData");
-
-            XYChart.Series<String, Number> salesSeries = new XYChart.Series<>();
-            salesSeries.setName("Sales");
-            salesData.forEach((day, amount) -> salesSeries.getData().add(new XYChart.Data<>(day, amount.doubleValue())));
-
-            XYChart.Series<String, Number> purchasesSeries = new XYChart.Series<>();
-            purchasesSeries.setName("Purchases");
-            purchasesData.forEach((day, amount) -> purchasesSeries.getData().add(new XYChart.Data<>(day, amount.doubleValue())));
-
-            XYChart.Series<String, Number> profitSeries = new XYChart.Series<>();
-            profitSeries.setName("Profit");
-            profitData.forEach((day, amount) -> profitSeries.getData().add(new XYChart.Data<>(day, amount.doubleValue())));
-
-            weeklyPerformanceChart.getData().setAll(salesSeries, purchasesSeries, profitSeries); // <<< CORRECTED
-        } else if (weeklyPerformanceChart != null) { // <<< CORRECTED
-            weeklyPerformanceChart.getData().clear(); // <<< CORRECTED
-            logger.warn("Weekly performance chart data not found or in unexpected map format.");
-        }
-    }
 
     private void populateSalesByCategoryPieChart(Map<String, Object> metrics) {
         if (salesByCategoryPieChart != null && metrics.get("salesByCategoryChartData") instanceof Map) {

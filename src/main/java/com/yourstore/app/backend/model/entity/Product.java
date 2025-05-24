@@ -42,6 +42,14 @@ public class Product extends Auditable {
     public Product() {
     }
 
+    public Product(String name, ProductCategory category, String description, BigDecimal purchasePrice, BigDecimal sellingPrice, int quantityInStock, String supplier) {     this.name = name;
+        this.category = category;
+        this.description = description;
+        this.purchasePrice = purchasePrice;
+        this.sellingPrice = sellingPrice;
+        this.quantityInStock = quantityInStock;
+        this.supplier = supplier;
+    }
     // Getters and Setters
     public Long getId() {
         return id;

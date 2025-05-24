@@ -420,16 +420,10 @@
 
 /* Styling for multi-series Bar Chart (Performance Chart) */
 /* Series 0 - Sales */
-.chart-bar.series0.default-color0 { -fx-bar-fill: #2563EB; } /* Primary Blue for Sales */
-/* Series 1 - Purchases */
-.chart-bar.series1.default-color1 { -fx-bar-fill: #F59E0B; } /* Amber/Orange for Purchases */
-/* Series 2 - Profit */
-.chart-bar.series2.default-color2 { -fx-bar-fill: #10B981; } /* Green for Positive Profit */
-/* You might need a way to dynamically style negative profit bars if using BarChart for profit directly.
-   Alternatively, a LineChart for profit might be easier to show positive/negative values clearly.
-   Or, if profit is always positive on the chart, green is fine.
-   For negative values on a bar chart, they typically go below the axis.
-*/
+.chart-bar.series0.default-color0 { -fx-bar-fill: #2563EB; } /* Sales - Primary Blue */
+.chart-bar.series1.default-color1 { -fx-bar-fill: #F59E0B; } /* Purchases - Amber/Orange */
+.chart-bar.series2.default-color2 { -fx-bar-fill: #A855F7; } /* Repair Revenue - Purple (example) */
+.chart-bar.series3.default-color3 { -fx-bar-fill: #10B981; } /* Net Profit - Green */
 
 /* Pie Chart Slice Colors (add more as needed, these are examples) */
 .chart-pie.default-color0 { -fx-pie-color: #2563EB; } /* Blue */
