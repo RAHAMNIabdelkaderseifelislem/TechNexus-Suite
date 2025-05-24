@@ -246,20 +246,57 @@ public class DashboardViewController {
         }
     }
 
-     private void populateFinancialSummaryCards(Map<String, Object> metrics) {
+    // Helper method to safely get BigDecimal from metrics map
+    private BigDecimal getBigDecimalFromMetric(Map<String, Object> metrics, String key) {
+        Object value = metrics.get(key);
+        if (value == null) {
+            return BigDecimal.ZERO;
+        }
+        if (value instanceof BigDecimal) {
+            return (BigDecimal) value;
+        } else if (value instanceof Double) {
+            return BigDecimal.valueOf((Double) value);
+        } else if (value instanceof Integer) {
+            return BigDecimal.valueOf((Integer) value);
+        } else if (value instanceof Long) {
+            return BigDecimal.valueOf((Long) value);
+        } else if (value instanceof String) {
+            try {
+                return new BigDecimal((String) value);
+            } catch (NumberFormatException e) {
+                logger.warn("Could not parse string metric {} to BigDecimal: '{}'", key, value, e);
+                return BigDecimal.ZERO;
+            }
+        }
+        logger.warn("Metric {} is of unexpected type {} and could not be converted to BigDecimal. Value: '{}'", key, value.getClass().getName(), value);
+        return BigDecimal.ZERO;
+    }
+
+    private void populateFinancialSummaryCards(Map<String, Object> metrics) {
         if (salesLast7DaysLabel == null) return;
 
-        salesLast7DaysLabel.setText("Sales: " + currencyFormatter.format(metrics.getOrDefault("salesLast7Days", BigDecimal.ZERO)));
-        purchasesLast7DaysLabel.setText("Purchases: " + currencyFormatter.format(metrics.getOrDefault("purchasesLast7Days", BigDecimal.ZERO)));
-        BigDecimal profit7 = (BigDecimal) metrics.getOrDefault("profitLast7Days", BigDecimal.ZERO);
-        profitLast7DaysLabel.setText("Profit: " + currencyFormatter.format(profit7));
-        profitLast7DaysLabel.setStyle(profit7.compareTo(BigDecimal.ZERO) >= 0 ? "-fx-text-fill: #0D9488;" : "-fx-text-fill: #D32F2F; -fx-font-weight: bold;"); // Green / Red
+        // Use the helper method to safely convert to BigDecimal
+        BigDecimal salesLast7Days = getBigDecimalFromMetric(metrics, "salesLast7Days");
+        BigDecimal purchasesLast7Days = getBigDecimalFromMetric(metrics, "purchasesLast7Days");
+        BigDecimal profitLast7Days = getBigDecimalFromMetric(metrics, "profitLast7Days");
+        
+        BigDecimal salesLast30Days = getBigDecimalFromMetric(metrics, "salesLast30Days");
+        BigDecimal purchasesLast30Days = getBigDecimalFromMetric(metrics, "purchasesLast30Days");
+        BigDecimal profitLast30Days = getBigDecimalFromMetric(metrics, "profitLast30Days");
 
-        salesLast30DaysLabel.setText("Sales: " + currencyFormatter.format(metrics.getOrDefault("salesLast30Days", BigDecimal.ZERO)));
-        purchasesLast30DaysLabel.setText("Purchases: " + currencyFormatter.format(metrics.getOrDefault("purchasesLast30Days", BigDecimal.ZERO)));
-        BigDecimal profit30 = (BigDecimal) metrics.getOrDefault("profitLast30Days", BigDecimal.ZERO);
-        profitLast30DaysLabel.setText("Profit: " + currencyFormatter.format(profit30));
-        profitLast30DaysLabel.setStyle(profit30.compareTo(BigDecimal.ZERO) >= 0 ? "-fx-text-fill: #0D9488;" : "-fx-text-fill: #D32F2F; -fx-font-weight: bold;"); // Green / Red
+        // Update 7-day labels
+        salesLast7DaysLabel.setText("Sales: " + currencyFormatter.format(salesLast7Days));
+        purchasesLast7DaysLabel.setText("Purchases: " + currencyFormatter.format(purchasesLast7Days));
+        profitLast7DaysLabel.setText("Profit: " + currencyFormatter.format(profitLast7Days));
+        profitLast7DaysLabel.setStyle(profitLast7Days.compareTo(BigDecimal.ZERO) >= 0 ? 
+            "-fx-text-fill: #0D9488;" : "-fx-text-fill: #D32F2F; -fx-font-weight: bold;"); // Green / Red
+
+        // Update 30-day labels
+        salesLast30DaysLabel.setText("Sales: " + currencyFormatter.format(salesLast30Days));
+        purchasesLast30DaysLabel.setText("Purchases: " + currencyFormatter.format(purchasesLast30Days));
+        profitLast30DaysLabel.setText("Profit: " + currencyFormatter.format(profitLast30Days));
+        profitLast30DaysLabel.setStyle(profitLast30Days.compareTo(BigDecimal.ZERO) >= 0 ? 
+            "-fx-text-fill: #0D9488;" : "-fx-text-fill: #D32F2F; -fx-font-weight: bold;"); // Green / Red
     }
 
     private void setupLatestRepairsTable() {

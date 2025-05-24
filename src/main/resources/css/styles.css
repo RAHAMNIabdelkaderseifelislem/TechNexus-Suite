@@ -1,25 +1,26 @@
 /* --- Font Imports --- */
+/* --- Font Imports --- */
 @font-face {
     font-family: 'Roboto';
-    src: url('../fonts/Roboto-Regular.ttf');
+    src: url('../fonts/Roboto-Regular.ttf'); /* NO colon after src, only before url() */
     font-weight: normal;
     font-style: normal;
 }
 @font-face {
     font-family: 'Roboto';
-    src: url('../fonts/Roboto-Bold.ttf');
+    src: url('../fonts/Roboto-Bold.ttf'); /* NO colon after src */
     font-weight: bold;
     font-style: normal;
 }
 @font-face {
     font-family: 'Roboto';
-    src: url('../fonts/Roboto-Italic.ttf');
+    src: url('../fonts/Roboto-Italic.ttf'); /* NO colon after src */
     font-weight: normal;
     font-style: italic;
 }
 @font-face {
     font-family: 'Roboto Mono';
-    src: url('../fonts/RobotoMono-Regular.ttf');
+    src: url('../fonts/RobotoMono-Regular.ttf'); /* NO colon after src */
     font-weight: normal;
     font-style: normal;
 }

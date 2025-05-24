@@ -41,13 +41,13 @@
                 </VBox>
             </HBox>
              <HBox spacing="15.0" alignment="CENTER" HBox.hgrow="ALWAYS" style="-fx-padding: 10 0 0 0;">
-                <VBox styleClass="dashboard-card" HBox.hgrow="ALWAYS" prefWidth="200" minHeight="120">
+                <VBox styleClass="dashboard-card" HBox.hgrow="ALWAYS" prefWidth="200" minHeight="180">
                     <Label text="FINANCIALS (LAST 7 DAYS)" styleClass="metric-title"/>
                     <Label fx:id="salesLast7DaysLabel" text="Sales: 0.00 DA" styleClass="metric-value-small"/>
                     <Label fx:id="purchasesLast7DaysLabel" text="Purchases: 0.00 DA" styleClass="metric-value-small"/>
                     <Label fx:id="profitLast7DaysLabel" text="Profit: 0.00 DA" styleClass="metric-value-profit"/>
                 </VBox>
-                <VBox styleClass="dashboard-card" HBox.hgrow="ALWAYS" prefWidth="200" minHeight="120">
+                <VBox styleClass="dashboard-card" HBox.hgrow="ALWAYS" prefWidth="200" minHeight="180">
                     <Label text="FINANCIALS (LAST 30 DAYS)" styleClass="metric-title"/>
                     <Label fx:id="salesLast30DaysLabel" text="Sales: 0.00 DA" styleClass="metric-value-small"/>
                     <Label fx:id="purchasesLast30DaysLabel" text="Purchases: 0.00 DA" styleClass="metric-value-small"/>
