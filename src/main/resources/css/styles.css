@@ -416,3 +416,40 @@
 #validationErrorLabel.dialog-error-label { /* Add this styleClass to validationErrorLabel */
     -fx-text-fill: #E11D48; /* Example for -fx-ruby-error */
 }
+
+/* Styling for multi-series Bar Chart (Performance Chart) */
+/* Series 0 - Sales */
+.chart-bar.series0.default-color0 { -fx-bar-fill: #2563EB; } /* Primary Blue for Sales */
+/* Series 1 - Purchases */
+.chart-bar.series1.default-color1 { -fx-bar-fill: #F59E0B; } /* Amber/Orange for Purchases */
+/* Series 2 - Profit */
+.chart-bar.series2.default-color2 { -fx-bar-fill: #10B981; } /* Green for Positive Profit */
+/* You might need a way to dynamically style negative profit bars if using BarChart for profit directly.
+   Alternatively, a LineChart for profit might be easier to show positive/negative values clearly.
+   Or, if profit is always positive on the chart, green is fine.
+   For negative values on a bar chart, they typically go below the axis.
+*/
+
+/* Pie Chart Slice Colors (add more as needed, these are examples) */
+.chart-pie.default-color0 { -fx-pie-color: #2563EB; } /* Blue */
+.chart-pie.default-color1 { -fx-pie-color: #10B981; } /* Green */
+.chart-pie.default-color2 { -fx-pie-color: #F59E0B; } /* Amber */
+.chart-pie.default-color3 { -fx-pie-color: #EF4444; } /* Red */
+.chart-pie.default-color4 { -fx-pie-color: #8B5CF6; } /* Purple */
+.chart-pie.default-color5 { -fx-pie-color: #6B7280; } /* Gray for "OTHER" */
+
+/* Top Selling Products Chart Bars (if different from performance chart) */
+.top-products-chart .chart-bar { -fx-bar-fill: #3B82F6; } /* Lighter Blue */
+
+.metric-value-small {
+    -fx-font-size: 15px; /* Slightly smaller for financial cards */
+    -fx-font-weight: normal;
+    -fx-text-fill: #4B5563; /* Darker gray */
+    -fx-padding: 1px 0;
+}
+
+.metric-value-profit {
+    -fx-font-size: 17px; /* Slightly larger for emphasis */
+    -fx-font-weight: bold;
+    /* Color is set dynamically in controller */
+}

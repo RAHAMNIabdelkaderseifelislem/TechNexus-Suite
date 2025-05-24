@@ -9,72 +9,85 @@
 <?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.text.TextFlow?> <!-- For rich text in lists -->
-<?import javafx.scene.text.Text?>    <!-- For rich text in lists -->
+<?import javafx.scene.chart.PieChart?> <!-- Added PieChart -->
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.shape.Circle?>
 
 <ScrollPane fitToWidth="true" fitToHeight="true" styleClass="main-content-area" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.yourstore.app.frontend.controller.DashboardViewController">
     <content>
-        <VBox spacing="25.0" alignment="TOP_CENTER" style="-fx-padding: 10;">
-            <Label text="Dashboard" styleClass="h1">
+        <VBox spacing="20.0" alignment="TOP_CENTER" style="-fx-padding: 10;">
+            <Label text="Store Dashboard" styleClass="h1">
                 <VBox.margin><Insets bottom="10.0"/></VBox.margin>
             </Label>
 
             <!-- Metric Cards Row -->
-            <HBox fx:id="metricCardsHBox" spacing="20.0" alignment="CENTER">
-                <VBox fx:id="todaysSalesCard" styleClass="dashboard-card" prefWidth="240" minHeight="100">
+            <HBox fx:id="metricCardsHBox" spacing="15.0" alignment="CENTER" HBox.hgrow="ALWAYS">
+                <VBox fx:id="todaysSalesCard" styleClass="dashboard-card" HBox.hgrow="ALWAYS" prefWidth="200" minHeight="100">
                     <Label text="TODAY'S SALES" styleClass="metric-title"/>
                     <Label fx:id="todaysSalesLabel" text="0.00 DA" styleClass="metric-value"/>
                 </VBox>
-                <VBox fx:id="productsInStockCard" styleClass="dashboard-card" prefWidth="240" minHeight="100">
+                <VBox fx:id="productsInStockCard" styleClass="dashboard-card" HBox.hgrow="ALWAYS" prefWidth="200" minHeight="100">
                     <Label text="PRODUCTS IN STOCK" styleClass="metric-title"/>
                     <Label fx:id="totalProductsLabel" text="0" styleClass="metric-value"/>
                 </VBox>
-                <VBox fx:id="pendingRepairsCard" styleClass="dashboard-card" prefWidth="240" minHeight="100">
+                <VBox fx:id="pendingRepairsCard" styleClass="dashboard-card" HBox.hgrow="ALWAYS" prefWidth="200" minHeight="100">
                     <Label text="PENDING REPAIRS" styleClass="metric-title"/>
                     <Label fx:id="pendingRepairsLabel" text="0" styleClass="metric-value"/>
                 </VBox>
-                <VBox fx:id="lowStockItemsCard" styleClass="dashboard-card" prefWidth="240" minHeight="100">
+                <VBox fx:id="lowStockItemsCard" styleClass="dashboard-card" HBox.hgrow="ALWAYS" prefWidth="200" minHeight="100">
                     <Label text="LOW STOCK ITEMS" styleClass="metric-title"/>
                     <Label fx:id="lowStockItemsLabel" text="0" styleClass="metric-value"/>
                 </VBox>
             </HBox>
+             <HBox spacing="15.0" alignment="CENTER" HBox.hgrow="ALWAYS" style="-fx-padding: 10 0 0 0;">
+                <VBox styleClass="dashboard-card" HBox.hgrow="ALWAYS" prefWidth="200" minHeight="120">
+                    <Label text="FINANCIALS (LAST 7 DAYS)" styleClass="metric-title"/>
+                    <Label fx:id="salesLast7DaysLabel" text="Sales: 0.00 DA" styleClass="metric-value-small"/>
+                    <Label fx:id="purchasesLast7DaysLabel" text="Purchases: 0.00 DA" styleClass="metric-value-small"/>
+                    <Label fx:id="profitLast7DaysLabel" text="Profit: 0.00 DA" styleClass="metric-value-profit"/>
+                </VBox>
+                <VBox styleClass="dashboard-card" HBox.hgrow="ALWAYS" prefWidth="200" minHeight="120">
+                    <Label text="FINANCIALS (LAST 30 DAYS)" styleClass="metric-title"/>
+                    <Label fx:id="salesLast30DaysLabel" text="Sales: 0.00 DA" styleClass="metric-value-small"/>
+                    <Label fx:id="purchasesLast30DaysLabel" text="Purchases: 0.00 DA" styleClass="metric-value-small"/>
+                    <Label fx:id="profitLast30DaysLabel" text="Profit: 0.00 DA" styleClass="metric-value-profit"/>
+                </VBox>
+            </HBox>
 
-            <Button fx:id="refreshButton" text="Refresh Metrics" onAction="#loadDashboardMetrics" styleClass="button-secondary">
-                <VBox.margin><Insets top="0" bottom="15.0"/></VBox.margin>
+            <Button fx:id="refreshButton" text="Refresh Dashboard" onAction="#loadDashboardMetrics" styleClass="button-secondary">
+                <VBox.margin><Insets top="5" bottom="15.0"/></VBox.margin>
             </Button>
 
             <!-- Main Content Grid -->
             <GridPane hgap="20.0" vgap="20.0" VBox.vgrow="ALWAYS">
                 <columnConstraints>
-                    <ColumnConstraints percentWidth="65.0" hgrow="SOMETIMES"/>
-                    <ColumnConstraints percentWidth="35.0" hgrow="SOMETIMES"/>
+                    <ColumnConstraints percentWidth="50.0" hgrow="SOMETIMES"/>
+                    <ColumnConstraints percentWidth="50.0" hgrow="SOMETIMES"/>
                 </columnConstraints>
                 <rowConstraints>
-                    <RowConstraints minHeight="300.0" vgrow="SOMETIMES"/>
-                    <RowConstraints minHeight="250.0" vgrow="SOMETIMES"/>
+                    <RowConstraints minHeight="320.0" prefHeight="350.0" vgrow="SOMETIMES"/> <!-- Performance Chart & Repairs -->
+                    <RowConstraints minHeight="320.0" prefHeight="350.0" vgrow="SOMETIMES"/> <!-- Category Pie & Recent Sales -->
+                    <RowConstraints minHeight="320.0" prefHeight="350.0" vgrow="SOMETIMES"/> <!-- Top Products & Low Stock -->
                 </rowConstraints>
 
-                <!-- Weekly Sales Chart -->
+                <!-- Performance Last 7 Days (Sales, Purchases, Profit) -->
                 <VBox GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="content-panel" spacing="10">
-                    <Label text="Sales Last 7 Days" styleClass="dashboard-section-title"/>
-                    <BarChart fx:id="weeklySalesChart" title="" prefHeight="300.0" VBox.vgrow="ALWAYS" animated="true">
-                        <xAxis><CategoryAxis fx:id="dayAxis" label="Day"/></xAxis>
-                        <yAxis><NumberAxis fx:id="salesAmountAxis" label="Sales Amount (DA)" side="LEFT" minorTickVisible="false"/></yAxis>
+                    <Label text="Performance Last 7 Days" styleClass="dashboard-section-title"/>
+                    <BarChart fx:id="weeklyPerformanceChart" title="" prefHeight="300.0" VBox.vgrow="ALWAYS" animated="true">
+                        <xAxis><CategoryAxis fx:id="dayAxisPerformance" label="Day"/></xAxis>
+                        <yAxis><NumberAxis fx:id="amountAxisPerformance" label="Amount (DA)" side="LEFT" minorTickVisible="false"/></yAxis>
                     </BarChart>
                 </VBox>
 
                 <!-- Latest Repair Jobs -->
                 <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="content-panel" spacing="10">
-                    <Label text="Latest Repair Jobs" styleClass="dashboard-section-title"/>
-                    <TableView fx:id="latestRepairsTableView" prefHeight="250.0" VBox.vgrow="ALWAYS"> <!-- Adjust prefHeight as needed -->
+                    <Label text="Active Repair Jobs" styleClass="dashboard-section-title"/>
+                    <TableView fx:id="latestRepairsTableView" prefHeight="250.0" VBox.vgrow="ALWAYS">
                         <columns>
-                            <TableColumn fx:id="latestRepairIdColumn" text="ID" prefWidth="60" styleClass="centered-column"/>
-                            <TableColumn fx:id="latestRepairCustomerColumn" text="Customer" prefWidth="120"/>
-                            <TableColumn fx:id="latestRepairItemColumn" text="Item" prefWidth="150"/>
+                            <TableColumn fx:id="latestRepairIdColumn" text="ID" prefWidth="50" style="-fx-alignment: CENTER;"/>
+                            <TableColumn fx:id="latestRepairCustomerColumn" text="Customer" prefWidth="100"/>
+                            <TableColumn fx:id="latestRepairItemColumn" text="Item" prefWidth="130"/>
                             <TableColumn fx:id="latestRepairStatusColumn" text="Status" prefWidth="120"/>
                         </columns>
                         <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
@@ -82,23 +95,39 @@
                     <Hyperlink text="View All Repairs" onAction="#navigateToViewRepairs" style="-fx-font-size: 12px;"/>
                 </VBox>
 
-                <!-- Recent Sales -->
-                <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="content-panel" spacing="10">
-                     <Label text="Recent Sales" styleClass="dashboard-section-title"/>
+                <!-- Sales by Category Pie Chart -->
+                 <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="content-panel" spacing="10">
+                    <Label text="Sales Revenue by Category (Top 5 + Other)" styleClass="dashboard-section-title"/>
+                    <PieChart fx:id="salesByCategoryPieChart" title="" prefHeight="300.0" VBox.vgrow="ALWAYS" legendVisible="true"/>
+                </VBox>
+
+                <!-- Recent Sales List -->
+                <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="content-panel" spacing="10">
+                     <Label text="Recent Sales Transactions" styleClass="dashboard-section-title"/>
                      <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
                         <VBox fx:id="recentSalesVBox" spacing="8.0" style="-fx-padding: 5px 0px;"/>
                      </ScrollPane>
                      <Hyperlink text="View All Sales" onAction="#navigateToViewSales" style="-fx-font-size: 12px;"/>
                 </VBox>
 
-                <!-- Low Stock Alerts -->
-                 <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="content-panel" spacing="10">
-                     <Label text="Low Stock Alerts" styleClass="dashboard-section-title"/>
-                     <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
-                        <VBox fx:id="lowStockAlertsVBox" spacing="8.0" style="-fx-padding: 5px 0px;"/>
-                     </ScrollPane>
-                     <Hyperlink text="View All Products / Order Stock" onAction="#navigateToProducts" style="-fx-font-size: 12px;"/>
+                 <!-- Top Selling Products (by Qty or Revenue) -->
+                 <VBox GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="content-panel" spacing="10">
+                    <Label text="Top 5 Selling Products (by Qty)" styleClass="dashboard-section-title"/>
+                    <BarChart fx:id="topSellingProductsQtyChart" prefHeight="300.0" VBox.vgrow="ALWAYS">
+                        <xAxis><CategoryAxis fx:id="productNameQtyAxis" label="Product"/></xAxis>
+                        <yAxis><NumberAxis fx:id="quantitySoldAxis" label="Quantity Sold"/></yAxis>
+                    </BarChart>
                 </VBox>
+                 <VBox GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="content-panel" spacing="10">
+                    <Label text="Top 5 Selling Products (by Revenue)" styleClass="dashboard-section-title"/>
+                    <BarChart fx:id="topSellingProductsRevChart" prefHeight="300.0" VBox.vgrow="ALWAYS">
+                        <xAxis><CategoryAxis fx:id="productNameRevAxis" label="Product"/></xAxis>
+                        <yAxis><NumberAxis fx:id="revenueGeneratedAxis" label="Revenue (DA)"/></yAxis>
+                    </BarChart>
+                </VBox>
+                <!-- Low Stock moved to a new row or merged if space is tight -->
+                <!-- For now, let's assume we can add a row or put it elsewhere if needed -->
+
             </GridPane>
         </VBox>
     </content>
