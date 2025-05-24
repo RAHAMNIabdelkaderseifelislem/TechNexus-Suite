@@ -243,7 +243,7 @@ public class DashboardViewController {
                 } else {
                     statusDot.setFill(getRepairStatusColor(status)); // Uses existing helper
                     statusText.setText(status.getDisplayName());
-                    statusText.setStyle("-fx-fill: -fx-dark-gray-text;"); // Ensure text color from CSS
+                    statusText.setStyle("-fx-fill: #1f2937;"); // Ensure text color from CSS
                     setGraphic(graphic);
                 }
             }
@@ -380,15 +380,15 @@ public class DashboardViewController {
         titleLine.setAlignment(Pos.CENTER_LEFT);
         Circle statusDot = new Circle(6, getRepairStatusColor(job.getStatus()));
         Text customerText = new Text(job.getCustomerName() != null ? job.getCustomerName() : "N/A");
-        customerText.setStyle("-fx-font-weight: bold; -fx-fill: -fx-dark-gray-text;");
+        customerText.setStyle("-fx-font-weight: bold; -fx-fill: #1f2937;");
         Label idLabel = new Label(" (R-" + job.getId() + ")");
-        idLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: -fx-medium-gray-text;");
+        idLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #6B7280;");
         titleLine.getChildren().addAll(statusDot, customerText, idLabel);
 
         String itemDesc = (job.getItemBrand() != null ? job.getItemBrand() : "") + " " + (job.getItemModel() != null ? job.getItemModel() : job.getItemType());
         Text itemIssueText = new Text(itemDesc.trim() + ": " + (job.getReportedIssue().length() > 50 ? job.getReportedIssue().substring(0, 47) + "..." : job.getReportedIssue()));
         itemIssueText.setWrappingWidth(200); // Max width for item/issue line
-        itemIssueText.setStyle("-fx-font-size: -fx-font-size-small; -fx-fill: -fx-medium-gray-text;");
+        itemIssueText.setStyle("-fx-font-size: 12px; -fx-fill: #6B7280;");
         
         entry.getChildren().addAll(titleLine, itemIssueText);
         return entry;
@@ -406,16 +406,16 @@ public class DashboardViewController {
                 return Color.web("#2563EB"); // -fx-primary-blue
 
             case READY_FOR_PICKUP:
-                return Color.web("#0D9488"); // -fx-teal-success
+                return Color.web("#0D9488"); // #0d9488
                 
             case COMPLETED_PAID:
             case COMPLETED_UNPAID:
-                return Color.GREEN; // Or use -fx-teal-success if preferred
+                return Color.GREEN; // Or use #0d9488 if preferred
 
             case CANCELLED_BY_CUSTOMER:
             case CANCELLED_BY_STORE:
             case UNREPAIRABLE:
-                return Color.web("#E11D48"); // -fx-ruby-error
+                return Color.web("#E11D48"); // #e11d48
                 
             default:
                 return Color.LIGHTGRAY; // Fallback for any other status
@@ -456,7 +456,7 @@ public class DashboardViewController {
         Label stockLabel = new Label("Stock: " + product.getQuantityInStock() + " (Thr: " + threshold + ")");
         stockLabel.setMinWidth(100);
         if (product.getQuantityInStock() <= threshold) {
-            stockLabel.setStyle("-fx-text-fill: -fx-ruby-error; -fx-font-weight: bold;");
+            stockLabel.setStyle("-fx-text-fill: #e11d48; -fx-font-weight: bold;");
         } else if (product.getQuantityInStock() <= threshold + 5) { // Example: nearing low stock
             stockLabel.setStyle("-fx-text-fill: -fx-amber-warning;");
         }

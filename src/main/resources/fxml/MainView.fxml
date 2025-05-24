@@ -86,12 +86,12 @@
             </MenuBar>
 
             <!-- Top Bar Content -->
-            <HBox fx:id="topBarHBox" alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 8px 15px; -fx-background-color: -fx-white; -fx-border-width: 0 0 1 0; -fx-border-color: -fx-border-color-light;">
-                <Label text="TechNexus Suite" style="-fx-font-size: -fx-font-size-h2; -fx-font-weight: bold; -fx-text-fill: -fx-dark-blue-header;"/>
+            <HBox fx:id="topBarHBox" alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 8px 15px; -fx-background-color: #ffffff; -fx-border-width: 0 0 1 0; -fx-border-color: #e5e7eb;">
+                <Label text="TechNexus Suite" style="-fx-font-size: -20px; -fx-font-weight: bold; -fx-text-fill: #1E3A8A;"/>
                 <Pane HBox.hgrow="ALWAYS"/> <!-- Flexible Spacer -->
 
                 <!-- Placeholder: Global Search -->
-                <TextField promptText="Global Search..." prefWidth="300" style="-fx-font-size: -fx-font-size-small;"/>
+                <TextField promptText="Global Search..." prefWidth="300" style="-fx-font-size: 12px;"/>
 
                 <!-- Placeholder: Notifications -->
                 <Button text="Notifications" styleClass="button-tertiary" contentDisplay="GRAPHIC_ONLY">
@@ -105,7 +105,7 @@
 
                 <!-- User Info / Profile Action -->
                 <HBox alignment="CENTER" spacing="8">
-                    <Label fx:id="loggedInUserLabel" text="User: Loading..." style="-fx-text-fill: -fx-medium-gray-text;"/>
+                    <Label fx:id="loggedInUserLabel" text="User: Loading..." style="-fx-text-fill: #6B7280;"/>
                     <MenuButton text="" styleClass="button-tertiary" contentDisplay="GRAPHIC_ONLY" popupSide="BOTTOM">
                          <graphic>
                              <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
@@ -145,8 +145,8 @@
     </center>
     
     <bottom>
-        <HBox fx:id="statusBarHBox" alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 5px 10px; -fx-background-color: #e9ecef; -fx-border-width: 1 0 0 0; -fx-border-color: -fx-border-color-light;">
-            <Label fx:id="statusLabel" text="Ready." style="-fx-text-fill: -fx-medium-gray-text;"/>
+        <HBox fx:id="statusBarHBox" alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 5px 10px; -fx-background-color: #e9ecef; -fx-border-width: 1 0 0 0; -fx-border-color: #e5e7eb;">
+            <Label fx:id="statusLabel" text="Ready." style="-fx-text-fill: #6B7280;"/>
             <Pane HBox.hgrow="ALWAYS"/> <!-- Spacer to push progress indicator to the right -->
             <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="22.0" prefWidth="22.0"/>
         </HBox>

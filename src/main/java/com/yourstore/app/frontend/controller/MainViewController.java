@@ -239,7 +239,7 @@ public class MainViewController {
             stageManager.showErrorAlert("View Loading Error", "Failed to load screen: " + viewId + "\nDetails: " + e.getMessage());
             mainContentArea.getChildren().clear();
             Label errorLabel = new Label("Error loading view: " + viewId + "\n" + e.getMessage());
-            errorLabel.setStyle("-fx-text-fill: -fx-ruby-error; -fx-padding: 20px;");
+            errorLabel.setStyle("-fx-text-fill: #e11d48; -fx-padding: 20px;");
             mainContentArea.getChildren().add(errorLabel);
         }
     }

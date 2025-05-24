@@ -34,7 +34,7 @@
 
     <center>
         <ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-padding: 5px;">
-            <VBox spacing="15.0" style="-fx-background-color: -fx-white; -fx-padding: 20px; -fx-border-radius: 6px; -fx-background-radius: 6px; -fx-effect: -fx-shadow-subtle;">
+            <VBox spacing="15.0" style="-fx-background-color: #ffffff; -fx-padding: 20px; -fx-border-radius: 6px; -fx-background-radius: 6px; -fx-effect: -fx-shadow-subtle;">
                 <Label text="Customer Information" styleClass="h3"/>
                 <GridPane hgap="10" vgap="10">
                     <columnConstraints>
@@ -99,8 +99,8 @@
                 </GridPane>
                 
                 <VBox spacing="5" alignment="CENTER_LEFT">
-                    <Label fx:id="errorMessageLabel" style="-fx-text-fill: -fx-ruby-error;" wrapText="true" managed="false" visible="false"/>
-                    <Label fx:id="statusMessageLabel" style="-fx-text-fill: -fx-teal-success;" wrapText="true" managed="false" visible="false"/>
+                    <Label fx:id="errorMessageLabel" style="-fx-text-fill: #e11d48;" wrapText="true" managed="false" visible="false"/>
+                    <Label fx:id="statusMessageLabel" style="-fx-text-fill: #0d9488;" wrapText="true" managed="false" visible="false"/>
                 </VBox>
             </VBox>
         </ScrollPane>

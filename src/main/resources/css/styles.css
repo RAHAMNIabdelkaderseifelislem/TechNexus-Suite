@@ -24,26 +24,23 @@
     font-style: normal;
 }
 
-/* --- Root Variables (JavaFX doesn't support CSS variables in the same way as web CSS) --- */
-/* Instead of using CSS variables, we'll define the values directly where needed */
-
 /* --- Base & General Styles --- */
 .label {
     -fx-font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    -fx-text-fill: #1F2937;
+    -fx-text-fill: #1F2937; /* Default dark gray text */
     -fx-font-size: 14px;
 }
 
 .text-field, .text-area, .combo-box, .spinner, .date-picker {
     -fx-font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 14px;
-    -fx-border-color: #D1D5DB;
+    -fx-border-color: #D1D5DB; /* Light gray border */
     -fx-border-radius: 4px;
     -fx-background-radius: 4px;
     -fx-padding: 6px 10px;
 }
 .text-field:focused, .text-area:focused, .combo-box:focused, .spinner:focused, .date-picker:focused {
-    -fx-border-color: #2563EB;
+    -fx-border-color: #2563EB; /* Primary blue border on focus */
     -fx-effect: dropshadow(gaussian, derive(#2563EB, -50%), 5, 0.3, 0, 0);
 }
 .combo-box .list-cell {
@@ -58,37 +55,37 @@
 .table-view {
     -fx-font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 14px;
-    -fx-border-color: #E5E7EB;
-    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E5E7EB; /* Lighter gray border for table */
+    -fx-background-color: #FFFFFF; /* White background */
 }
 .table-view .column-header-background {
-    -fx-background-color: #F3F4F6;
+    -fx-background-color: #F3F4F6; /* Very light gray for header background */
     -fx-padding: 8px 5px;
 }
 .table-view .column-header .label {
     -fx-font-weight: bold;
-    -fx-text-fill: #1F2937;
+    -fx-text-fill: #1F2937; /* Dark gray for header text */
     -fx-padding: 0 0 0 5px;
     -fx-font-size: 13px;
 }
 .table-view .table-row-cell {
-    -fx-border-color: transparent #E5E7EB transparent transparent;
+    -fx-border-color: transparent #E5E7EB transparent transparent; /* Lighter gray for cell border */
     -fx-border-width: 0 1px 0 0;
     -fx-font-size: 13px;
 }
 .table-view .table-row-cell:odd {
-    -fx-background-color: #FFFFFF;
+    -fx-background-color: #FFFFFF; /* White for odd rows */
 }
 .table-view .table-row-cell:even {
-    -fx-background-color: #F3F4F6;
+    -fx-background-color: #F3F4F6; /* Very light gray for even rows */
 }
 .table-view .table-row-cell:selected {
-    -fx-background-color: #DBEAFE;
-    -fx-text-fill: #1E3A8A;
+    -fx-background-color: #DBEAFE; /* Light blue for selected row */
+    -fx-text-fill: #1E3A8A;    /* Darker blue for text in selected row */
     -fx-font-weight: bold;
 }
 .table-view:focused .table-row-cell:selected {
-    -fx-background-color: #DBEAFE;
+    -fx-background-color: #DBEAFE; /* Consistent selection color */
 }
 
 /* --- Button Styles --- */
@@ -106,8 +103,8 @@
 }
 
 .button-primary {
-    -fx-background-color: #2563EB;
-    -fx-text-fill: #FFFFFF;
+    -fx-background-color: #2563EB; /* Primary blue */
+    -fx-text-fill: #FFFFFF;    /* White text */
     -fx-font-weight: bold;
 }
 .button-primary:hover {
@@ -115,19 +112,19 @@
 }
 
 .button-secondary {
-    -fx-background-color: #FFFFFF;
-    -fx-text-fill: #2563EB;
-    -fx-border-color: #2563EB;
+    -fx-background-color: #FFFFFF; /* White background */
+    -fx-text-fill: #2563EB;    /* Primary blue text */
+    -fx-border-color: #2563EB; /* Primary blue border */
     -fx-border-width: 1px;
 }
 .button-secondary:hover {
-    -fx-background-color: derive(#DBEAFE, -5%);
+    -fx-background-color: derive(#DBEAFE, -5%); /* Slightly darker light blue */
     -fx-border-color: derive(#2563EB, -10%);
 }
-    
+
 .button-danger {
-    -fx-background-color: #E11D48;
-    -fx-text-fill: #FFFFFF;
+    -fx-background-color: #E11D48; /* Ruby red */
+    -fx-text-fill: #FFFFFF;    /* White text */
     -fx-font-weight: bold;
 }
 .button-danger:hover {
@@ -136,26 +133,26 @@
 
 .button-tertiary {
     -fx-background-color: transparent;
-    -fx-text-fill: #2563EB;
+    -fx-text-fill: #2563EB; /* Primary blue text */
     -fx-padding: 5px 8px;
     -fx-effect: none;
     -fx-border-width: 0;
     -fx-font-size: 13px;
 }
 .button-tertiary:hover {
-    -fx-background-color: derive(#DBEAFE, -2%);
+    -fx-background-color: derive(#DBEAFE, -2%); /* Very light blue */
     -fx-text-fill: derive(#2563EB, -10%);
 }
 
 /* --- Side Navigation Panel Styles --- */
 .side-navigation-panel {
-    -fx-background-color: #1E3A8A;
+    -fx-background-color: #1E3A8A; /* Dark blue header color */
     -fx-padding: 10px 0px 10px 0px;
 }
 
 .side-nav-button {
     -fx-background-color: transparent;
-    -fx-text-fill: #A5B4FC;
+    -fx-text-fill: #A5B4FC; /* Light indigo for text */
     -fx-font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 13px;
     -fx-padding: 12px 20px;
@@ -166,28 +163,28 @@
     -fx-graphic-text-gap: 15px;
 }
 .side-nav-button:hover {
-    -fx-background-color: #2563EB;
-    -fx-text-fill: #FFFFFF;
+    -fx-background-color: #2563EB; /* Primary blue on hover */
+    -fx-text-fill: #FFFFFF;    /* White text on hover */
 }
 .side-nav-button:selected, .side-nav-button.selected {
-    -fx-background-color: #2563EB;
-    -fx-text-fill: #FFFFFF;
+    -fx-background-color: #2563EB; /* Primary blue for selected */
+    -fx-text-fill: #FFFFFF;    /* White text for selected */
     -fx-font-weight: bold;
 }
 
 /* --- Headings --- */
-.h1 { -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1E40AF; }
-.h2 { -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1E40AF; }
-.h3 { -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1F2937; }
+.h1 { -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1E3A8A; } /* Dark blue header */
+.h2 { -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1E3A8A; } /* Dark blue header */
+.h3 { -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1F2937; } /* Default dark gray */
 
 /* --- Main Content Area & Panels --- */
 .main-content-area {
-    -fx-background-color: #F3F4F6;
+    -fx-background-color: #F3F4F6; /* Very light gray background */
     -fx-padding: 20px;
 }
 
-.content-panel { 
-    -fx-background-color: #FFFFFF;
+.content-panel {
+    -fx-background-color: #FFFFFF; /* White background for panels */
     -fx-padding: 20px;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
@@ -197,8 +194,8 @@
 /* --- DialogPane Styles --- */
 .dialog-pane {
     -fx-font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    -fx-background-color: #FFFFFF;
-    -fx-border-color: #D1D5DB;
+    -fx-background-color: #FFFFFF; /* White background */
+    -fx-border-color: #D1D5DB; /* Light gray border */
     -fx-border-width: 1px;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.2, 0, 2);
 }
@@ -206,14 +203,14 @@
     -fx-padding: 10px 0 0 0;
 }
 .dialog-pane .header-panel {
-    -fx-background-color: #1E40AF; 
+    -fx-background-color: #1E3A8A; /* Dark blue header */
     -fx-padding: 12px 15px;
     -fx-border-width: 0 0 1px 0;
-    -fx-border-color: derive(#1E40AF, -20%);
+    -fx-border-color: derive(#1E3A8A, -20%);
 }
 .dialog-pane .header-panel .label {
     -fx-font-size: 18px;
-    -fx-text-fill: #FFFFFF; 
+    -fx-text-fill: #FFFFFF; /* White text */
     -fx-font-weight: bold;
 }
 .dialog-pane > .content.label {
@@ -223,16 +220,16 @@
 .dialog-pane > .content {
     -fx-padding: 15px;
 }
-.dialog-pane .button-bar .container { 
+.dialog-pane .button-bar .container {
     -fx-padding: 15px 10px 10px 10px;
-    -fx-background-color: #F3F4F6;
+    -fx-background-color: #F3F4F6; /* Very light gray for button bar */
 }
 .dialog-pane .button {
     -fx-font-size: 14px;
 }
 .dialog-pane > .button-bar > .container > .button:default {
-   -fx-background-color: #2563EB;
-   -fx-text-fill: #FFFFFF;
+   -fx-background-color: #2563EB; /* Primary blue */
+   -fx-text-fill: #FFFFFF;    /* White text */
    -fx-font-weight: bold;
 }
 .dialog-pane > .button-bar > .container > .button:default:hover {
@@ -243,82 +240,82 @@
 .dashboard-section-title {
     -fx-font-size: 20px;
     -fx-font-weight: bold;
-    -fx-text-fill: #1E40AF;
+    -fx-text-fill: #1E3A8A; /* Dark blue header */
     -fx-padding: 0 0 10px 0;
 }
 
 .dashboard-card {
-    -fx-background-color: #FFFFFF;
+    -fx-background-color: #FFFFFF; /* White */
     -fx-padding: 20px;
     -fx-border-radius: 8px;
     -fx-background-radius: 8px;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.2, 0, 2); 
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.2, 0, 2);
     -fx-alignment: top-left;
-    -fx-spacing: 8px; 
+    -fx-spacing: 8px;
     -fx-min-width: 220px;
     -fx-border-width: 0 0 0 4px;
     -fx-border-color: transparent;
 }
-.dashboard-card-accent-teal { -fx-border-left-color: #0D9488; }
-.dashboard-card-accent-amber { -fx-border-left-color: #F59E0B; }
-.dashboard-card-accent-ruby { -fx-border-left-color: #E11D48; }
+.dashboard-card-accent-teal { -fx-border-left-color: #0D9488; } /* Teal success */
+.dashboard-card-accent-amber { -fx-border-left-color: #F59E0B; } /* Amber warning */
+.dashboard-card-accent-ruby { -fx-border-left-color: #E11D48; } /* Ruby error */
 
 .dashboard-card .metric-title {
     -fx-font-size: 14px;
-    -fx-text-fill: #6B7280;
+    -fx-text-fill: #6B7280; /* Medium gray text */
     -fx-font-weight: normal;
 }
 .dashboard-card .metric-value {
     -fx-font-size: 24px;
     -fx-font-weight: bold;
-    -fx-text-fill: #1E40AF;
+    -fx-text-fill: #1E3A8A; /* Dark blue header */
 }
 
 .dashboard-placeholder-section {
-    -fx-background-color: #FFFFFF;
+    -fx-background-color: #FFFFFF; /* White */
     -fx-padding: 20px;
     -fx-border-radius: 8px;
     -fx-background-radius: 8px;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.2, 0, 2);
     -fx-alignment: center;
-    -fx-text-fill: #6B7280;
+    -fx-text-fill: #6B7280; /* Medium gray text */
     -fx-font-style: italic;
     -fx-font-size: 14px;
 }
 
 /* --- TableView Cell Specific Styles for Stock --- */
 .table-row-cell .stock-critical {
-    -fx-text-fill: #E11D48;
+    -fx-text-fill: #E11D48; /* Ruby error */
     -fx-font-weight: bold;
 }
 .table-row-cell .stock-low {
-    -fx-text-fill: #F59E0B;
+    -fx-text-fill: #F59E0B; /* Amber warning */
 }
 .table-row-cell .stock-sufficient {
-    -fx-text-fill: #0D9488;
+    -fx-text-fill: #0D9488; /* Teal success */
 }
 
 /* Chart Styles (Basic) */
 .chart-title {
     -fx-font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 18px;
-    -fx-text-fill: #1E40AF;
+    -fx-text-fill: #1E3A8A; /* Dark blue header */
 }
 .axis-label {
     -fx-font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 12px;
-    -fx-text-fill: #6B7280;
+    -fx-text-fill: #6B7280; /* Medium gray text */
 }
 .chart-plot-background {
-    -fx-background-color: derive(#F3F4F6, -2%);
+    -fx-background-color: derive(#F3F4F6, -2%); /* Slightly darker very light gray */
 }
-.chart-bar { 
-    -fx-bar-fill: #2563EB;
+.chart-bar {
+    -fx-bar-fill: #2563EB; /* Primary blue */
 }
 .chart-legend {
-    -fx-background-color: #FFFFFF;
+    -fx-background-color: #FFFFFF; /* White */
     -fx-padding: 5px;
-    -fx-border-color: #E5E7EB;
+    -fx-border-color: #E5E7EB; /* Lighter gray */
     -fx-border-radius: 3px;
     -fx-font-size: 12px;
 }
@@ -336,7 +333,7 @@
 
 /* Progress indicator color */
 .progress-indicator .percentage, .progress-indicator .indeterminate-segment {
-    -fx-background-color: #2563EB;
+    -fx-background-color: #2563EB; /* Primary blue */
 }
 
 .status-dot-cell {
@@ -354,4 +351,68 @@
 }
 .dashboard-table-view .column-header .label {
     -fx-font-size: 12px;
+}
+
+/* Additional Styles for Specific Labels in FXML that had unresolved lookups */
+/* For MainView.fxml */
+#topBarHBox { /* Referencing fx:id */
+    -fx-padding: 8px 15px;
+    -fx-background-color: white; /* Corrected from -fx-white */
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #E5E7EB; /* Corrected from -fx-border-color-light */
+}
+#topBarHBox .label-header-title { /* Added a style class for the main title */
+    -fx-font-size: 20px; /* Example for -20px */
+    -fx-font-weight: bold;
+    -fx-text-fill: #1E3A8A; /* Example for -fx-dark-blue-header */
+}
+#topBarHBox .textfield-search { /* Added a style class for the search field */
+    -fx-font-size: 12px; /* Example for 12px */
+}
+#loggedInUserLabel {
+    -fx-text-fill: #6B7280; /* Example for -fx-medium-gray-text */
+}
+#statusBarHBox { /* Referencing fx:id */
+    -fx-padding: 5px 10px;
+    -fx-background-color: #e9ecef;
+    -fx-border-width: 1 0 0 0;
+    -fx-border-color: #E5E7EB; /* Corrected from -fx-border-color-light */
+}
+#statusLabel {
+    -fx-text-fill: #6B7280; /* Example for -fx-medium-gray-text */
+    -fx-font-size: 12px;   /* Example for 12px */
+}
+
+
+/* For DashboardView.fxml */
+#latestRepairsTableView .text-status { /* Added style class for the status text in table cell */
+    -fx-fill: #1F2937; /* Example for #1f2937 */
+}
+
+/* For NewSaleView.fxml & NewPurchaseView.fxml */
+.total-amount-label { /* Add this styleClass to your total amount labels */
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1E3A8A; /* Example for -fx-dark-blue-header */
+}
+.status-message-label-success { /* Add to statusMessageLabel if it's for success */
+    -fx-text-fill: #0D9488; /* Example for -fx-teal-success */
+}
+.status-message-label-error { /* Add to errorMessageLabel */
+    -fx-text-fill: #E11D48; /* Example for -fx-ruby-error */
+}
+
+/* For ProductListView.fxml */
+#statusLabel.product-list-status { /* If you give the statusLabel in ProductListView an fx:id or specific styleClass */
+     -fx-font-size: 12px; /* Example for 12px */
+     -fx-text-fill: #6B7280; /* Example for -fx-medium-gray-text */
+}
+/* Repeat for status labels in other list views (PurchasesListView, RepairsListView, SalesListView) */
+#statusLabel.purchase-list-status { -fx-font-size: 12px; -fx-text-fill: #6B7280;}
+#statusLabel.repair-list-status { -fx-font-size: 12px; -fx-text-fill: #6B7280;}
+#statusLabel.sale-list-status { -fx-font-size: 12px; -fx-text-fill: #6B7280;}
+
+/* For ProductEditDialog.fxml */
+#validationErrorLabel.dialog-error-label { /* Add this styleClass to validationErrorLabel */
+    -fx-text-fill: #E11D48; /* Example for -fx-ruby-error */
 }

@@ -73,12 +73,12 @@
                 </TableView>
 
                 <HBox alignment="CENTER_RIGHT" spacing="10.0" style="-fx-padding: 10px 0;">
-                    <Label text="Total Amount:" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -fx-dark-blue-header;"/>
-                    <Label fx:id="totalAmountLabel" text="0.00 DA" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -fx-dark-blue-header;"/>
+                    <Label text="Total Amount:" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1E3A8A;"/>
+                    <Label fx:id="totalAmountLabel" text="0.00 DA" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1E3A8A;"/>
                 </HBox>
                 <VBox spacing="5">
-                    <Label fx:id="statusMessageLabel" style="-fx-text-fill: -fx-teal-success;" wrapText="true" managed="false" visible="false"/>
-                    <Label fx:id="errorMessageLabel" style="-fx-text-fill: -fx-ruby-error;" wrapText="true" managed="false" visible="false"/>
+                    <Label fx:id="statusMessageLabel" style="-fx-text-fill: #0d9488;" wrapText="true" managed="false" visible="false"/>
+                    <Label fx:id="errorMessageLabel" style="-fx-text-fill: #e11d48;" wrapText="true" managed="false" visible="false"/>
                 </VBox>
             </VBox>
         </ScrollPane>

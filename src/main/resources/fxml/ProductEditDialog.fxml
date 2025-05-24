@@ -4,7 +4,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ButtonType?>
 <?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.DialogPane?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory?>
@@ -42,16 +42,26 @@
             <TextField fx:id="supplierField" GridPane.columnIndex="1" GridPane.rowIndex="3" promptText="Enter supplier name"/>
 
             <Label text="Purchase Price:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-            <Spinner fx:id="purchasePriceSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="4" initialValue="0.0" min="0.0" max="1000000.0" amountToStepBy="0.01" prefWidth="2000.0">
+            <Spinner fx:id="purchasePriceSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="2000.0">
                  <valueFactory>
-                    <SpinnerValueFactory.DoubleSpinnerValueFactory min="0.0" max="10000000.0" initialValue="0.0" amountToStepBy="0.01" precision="2"/>
+                    <!-- Properties like min, max, initialValue, amountToStepBy are defined here -->
+                    <!-- The 'precision' attribute has been removed as it's not a valid FXML property for this factory -->
+                    <SpinnerValueFactory.DoubleSpinnerValueFactory
+                        min="0.0"
+                        max="10000000.0"
+                        initialValue="0.0"
+                        amountToStepBy="0.01"/>
                 </valueFactory>
             </Spinner>
 
             <Label text="Selling Price:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-            <Spinner fx:id="sellingPriceSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="5" initialValue="0.01" min="0.01" max="1000000.0" amountToStepBy="0.01" prefWidth="2000.0">
+            <Spinner fx:id="sellingPriceSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="2000.0">
                 <valueFactory>
-                    <SpinnerValueFactory.DoubleSpinnerValueFactory min="0.01" max="10000000.0" initialValue="0.01" amountToStepBy="0.01" precision="2"/>
+                    <SpinnerValueFactory.DoubleSpinnerValueFactory
+                        min="0.01"
+                        max="10000000.0"
+                        initialValue="0.01"
+                        amountToStepBy="0.01"/>
                 </valueFactory>
             </Spinner>
 
@@ -72,7 +82,7 @@
     <!-- Graphic for validation errors, styled by CSS if needed, or use default red text -->
     <graphic>
         <VBox alignment="CENTER_LEFT" spacing="5">
-             <Label fx:id="validationErrorLabel" style="-fx-text-fill: -fx-ruby-error;" wrapText="true" maxWidth="450.0"/>
+             <Label fx:id="validationErrorLabel" style="-fx-text-fill: #e11d48;" wrapText="true" maxWidth="450.0"/>
         </VBox>
     </graphic>
 

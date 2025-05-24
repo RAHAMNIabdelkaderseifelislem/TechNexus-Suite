@@ -79,7 +79,7 @@
                         </columns>
                         <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
                     </TableView>
-                    <Hyperlink text="View All Repairs" onAction="#navigateToViewRepairs" style="-fx-font-size: -fx-font-size-small;"/>
+                    <Hyperlink text="View All Repairs" onAction="#navigateToViewRepairs" style="-fx-font-size: 12px;"/>
                 </VBox>
 
                 <!-- Recent Sales -->
@@ -88,7 +88,7 @@
                      <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
                         <VBox fx:id="recentSalesVBox" spacing="8.0" style="-fx-padding: 5px 0px;"/>
                      </ScrollPane>
-                     <Hyperlink text="View All Sales" onAction="#navigateToViewSales" style="-fx-font-size: -fx-font-size-small;"/>
+                     <Hyperlink text="View All Sales" onAction="#navigateToViewSales" style="-fx-font-size: 12px;"/>
                 </VBox>
 
                 <!-- Low Stock Alerts -->
@@ -97,7 +97,7 @@
                      <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
                         <VBox fx:id="lowStockAlertsVBox" spacing="8.0" style="-fx-padding: 5px 0px;"/>
                      </ScrollPane>
-                     <Hyperlink text="View All Products / Order Stock" onAction="#navigateToProducts" style="-fx-font-size: -fx-font-size-small;"/>
+                     <Hyperlink text="View All Products / Order Stock" onAction="#navigateToProducts" style="-fx-font-size: 12px;"/>
                 </VBox>
             </GridPane>
         </VBox>

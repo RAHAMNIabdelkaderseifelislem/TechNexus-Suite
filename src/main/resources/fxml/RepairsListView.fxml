@@ -37,7 +37,7 @@
                 <Button fx:id="refreshButton" text="Refresh List" onAction="#handleRefresh" styleClass="button-secondary"/>
             </HBox>
             <HBox alignment="CENTER_LEFT" spacing="5" style="-fx-padding: 5 0 0 0;">
-                <Label fx:id="statusLabel" style="-fx-font-size: -fx-font-size-small; -fx-text-fill: -fx-medium-gray-text;"/>
+                <Label fx:id="statusLabel" style="-fx-font-size: 12px; -fx-text-fill: #6B7280;"/>
                 <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="20.0" prefWidth="20.0"/>
             </HBox>
         </VBox>
