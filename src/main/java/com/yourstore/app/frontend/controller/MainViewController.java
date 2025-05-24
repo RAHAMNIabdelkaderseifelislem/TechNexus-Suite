@@ -287,8 +287,21 @@ public class MainViewController {
     }
 
     // Placeholder Handlers
-    @FXML private void handleSalesReport() { stageManager.showInfoAlert("Sales Report", "Custom sales reports feature is under construction.");}
-    @FXML private void handleStockReport() { stageManager.showInfoAlert("Stock Report", "Custom stock reports feature is under construction.");}
+     @FXML
+    private void handleSalesReport() {
+        logger.info("Navigating to Detailed Sales Report view.");
+        loadCenterView("/fxml/SalesReportView.fxml");
+        // Optionally, update the selected side navigation button if "Reports" is a primary section
+        // selectSideNavButtonByText("REPORTS"); // If you have a general "Reports" side button
+    }
+
+    @FXML
+    private void handleStockReport() {
+        logger.info("Navigating to Current Stock Report view.");
+        loadCenterView("/fxml/StockReportView.fxml");
+        // Optionally, update the selected side navigation button
+        // selectSideNavButtonByText("REPORTS");
+    }
     @FXML private void handleAppSettings() { stageManager.showInfoAlert("Application Settings", "Application settings screen is under construction.");}
     @FXML private void handleAbout() { stageManager.showInfoAlert("About TechNexus Suite", "Version 1.0\nComputer Retail & Repair Management");}
 

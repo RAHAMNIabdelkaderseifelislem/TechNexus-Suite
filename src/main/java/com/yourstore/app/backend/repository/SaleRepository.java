@@ -57,4 +57,7 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     @Query("SELECT si.product.name, SUM(si.subtotal) as totalRevenueGenerated " +
            "FROM SaleItem si GROUP BY si.product.name ORDER BY totalRevenueGenerated DESC")
     List<Object[]> findTopSellingProductsByRevenue(Pageable pageable); // <<< Pageable is now resolved
+
+    @EntityGraph(attributePaths = {"items", "items.product", "user"}) // Ensure related data is fetched
+    List<Sale> findBySaleDateBetweenOrderBySaleDateDesc(LocalDateTime startDate, LocalDateTime endDate);
 }
